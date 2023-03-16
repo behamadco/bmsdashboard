@@ -45,21 +45,27 @@ getLastLogin(uuid,token).then(res =>{
     lastIp.innerHTML = res["data"]["ipaddress"];
 });
 getAllNotification(uuid,token).then(res =>{
-    for(var index in res["data"]){
-        notificationDiv.innerHTML += "<a href='#' class='dropdown-item'><h6 class='fw-normal mb-0'>" + res["data"][index]["subject"] + "</h6></a><hr class='dropdown-divider'>"
-    }
-    notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"
+    fetch("/publicComponents/notificationRow.html").then(componentResponse=>componentResponse.text().then(notificationHtml=>{
+        for(var index in res["data"]){
+            notificationDiv.innerHTML += notificationHtml.replace("#notificationText",res["data"][index]["subject"]);
+        }
+    })).finally(()=>{notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"});
 });
 
+
 getAllScenarios(uuid,token).then(res => {
-    for(var index in res["data"]){
-        scenarioDiv.innerHTML += "<div class='d-flex align-items-center border-bottom py-3'><i class='fa fa-plug fa-3x text-info'></i><div class='w-100 ms-3'><div class='d-flex w-100 justify-content-between'><h6 class='mb-0 scenario-name'>"+ res["data"][index]["name"] +"</h6></div><span></span></div></div>";
-    }
+    fetch("components/scenarioComponent.html").then(componentResponse=>componentResponse.text().then(scenarioHtml=>{
+        for(var index in res["data"]){
+            scenarioDiv.innerHTML += scenarioHtml.replace("#scenarioName",res["data"][index]["name"]);
+        }
+    }));
 });
 
 getQuickAccessDevices(uuid,token).then(res => {
-    for(var index in res["data"]){
-        quickAccessDiv.innerHTML += "<a href=''><div class='d-flex align-items-center border-bottom py-3'><img class='dashboard-icon' src="+ deviceIcon[res["data"][index]["type"]] +" alt=''><div class='w-100 ms-3'><div class='d-flex w-100 justify-content-between'><h6 class='mb-0 item-header'>"+ res["data"][index]["name"] +"</h6></div></div></div></a>";
-    }
+    fetch("components/quickAccessComponent.html").then(componentResponse=>componentResponse.text().then(quickAccessHtml=>{
+        for(var index in res["data"]){
+            quickAccessDiv.innerHTML += quickAccessHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"])
+        }
+    }));
     spinner.classList.remove("show");
 });

@@ -1,0 +1,9 @@
+.deviceRow{
+    background-color: #191C24;
+}
+
+.deviceRow:hover{
+    background-color: #343944;
+    transition: 0.2s;
+    cursor: pointer;
+}

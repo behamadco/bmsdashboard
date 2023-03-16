@@ -62,25 +62,45 @@ var sensorsDeviceDiv = document.getElementById("sensorDeviceDiv");
 var spinner = document.getElementById("spinner");
 
 getAllNotification(uuid,token).then(res =>{
-    for(var index in res["data"]){
-        notificationDiv.innerHTML += "<a href='#' class='dropdown-item'><h6 class='fw-normal mb-0'>" + res["data"][index]["subject"] + "</h6></a><hr class='dropdown-divider'>"
-    }
-    notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"
+    fetch("/publicComponents/notificationRow.html").then(componentResponse=>componentResponse.text().then(notificationHtml=>{
+        for(var index in res["data"]){
+            notificationDiv.innerHTML += notificationHtml.replace("#notificationText",res["data"][index]["subject"]);
+        }
+    })).finally(()=>{notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"});
 });
 
 getAllDevices(uuid,token).then(res=>{
-    for(var index in res["data"]){
-        if(touchkeys.includes(res["data"][index]["type"])){
-            socketDeviceDiv.innerHTML += "<div class='col-sm-3 col-xl-3 section'><a href=''><div class='bg-secondary rounded d-flex align-items-center justify-content-between p-4'><img class='device-icon' src=" + deviceIcon[res["data"][index]["type"]] + " alt=''><div class='ms-3'><h6 class='mb-0'>"+ res["data"][index]["name"] +"</h6></div></div></a></div>"
+    fetch("components/deviceRow.html").then(componentResponse=>componentResponse.text().then(deviceHtml=>{
+        var devicesElemenets = [];
+        for(var index in res["data"]){
+            if(touchkeys.includes(res["data"][index]["type"])){
+                socketDeviceDiv.insertAdjacentHTML("beforeend",deviceHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"]).replace("#deviceId",res["data"][index]["id"]));
+            }
+    
+            else if(actuators.includes(res["data"][index]["type"])){
+                actuatorsDeviceDiv.insertAdjacentHTML("beforeend",deviceHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"]).replace("#deviceId",res["data"][index]["id"]));
+            }
+    
+            else if(sensors.includes(res["data"][index]["type"])){
+                sensorsDeviceDiv.insertAdjacentHTML("beforeend",deviceHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"]).replace("#deviceId",res["data"][index]["id"]));
+            }
+            var eventListenerElemenet = document.getElementById(res["data"][index]["id"]);
+            if(eventListenerElemenet!=null){
+                devicesElemenets.push(eventListenerElemenet);
+            }
         }
 
-        else if(actuators.includes(res["data"][index]["type"])){
-            actuatorsDeviceDiv.innerHTML += "<div class='col-sm-3 col-xl-3 section'><a href=''><div class='bg-secondary rounded d-flex align-items-center justify-content-between p-4'><img class='device-icon' src=" + deviceIcon[res["data"][index]["type"]] + " alt=''><div class='ms-3'><h6 class='mb-0'>"+ res["data"][index]["name"] +"</h6></div></div></a></div>"
-        }
+        return devicesElemenets;
 
-        else if(sensors.includes(res["data"][index]["type"])){
-            sensorsDeviceDiv.innerHTML += "<div class='col-sm-3 col-xl-3 section'><a href=''><div class='bg-secondary rounded d-flex align-items-center justify-content-between p-4'><img class='device-icon' src=" + deviceIcon[res["data"][index]["type"]] + " alt=''><div class='ms-3'><h6 class='mb-0'>"+ res["data"][index]["name"] +"</h6></div></div></a></div>"
-        }
-    }
+    })).then(elemenetsResponse=>{
+        elemenetsResponse.forEach(function(element){
+            element.addEventListener("click",function(e){
+                e.preventDefault();
+                localStorage.setItem("devicePageDeviceId",this.getAttribute("id"));
+                location.replace("/device")
+            },false);
+        });
+    });
     spinner.classList.remove("show");
 });
+
