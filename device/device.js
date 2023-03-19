@@ -3,10 +3,13 @@ import { getBuilding, getDeviceByID, getPlace } from "../js/Functions.js";
 var uuid = sessionStorage.getItem("uuid");
 var token = sessionStorage.getItem("token");
 var username = sessionStorage.getItem("username");
+var brokerUsername = sessionStorage.getItem("brokeruser");
+var brokerPassword = sessionStorage.getItem("brokerpass");
 var topic;
 var statusTopic;
 var connectionStatus = false;
 var deviceType;
+let unicodeDegCel = '℃';
 var mqtt = new Paho.MQTT.Client("185.2.14.188",9001,"BMS Dash");
 
 
@@ -97,6 +100,320 @@ var deviceNameDiv = document.getElementById("deviceName");
 var deviceIconImage = document.getElementById("deviceIcon");
 var connectStatus = document.getElementById("connectStatus");
 var version = document.getElementById("version");
+var potCirProg;
+var thermostatTemp;
+var thermostatHum;
+
+function socketActions(){
+    console.log("SOCKET");
+    var socket = document.getElementById('socket');
+    socket.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(socket.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            socket.classList.remove('power-on');
+            socket.classList.add('power-off');
+            socket.setAttribute('val','0');
+        }else if(socket.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            socket.classList.remove('power-off');
+            socket.classList.add('power-on');
+            socket.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function coolerKeyActions(){
+    var pompPower = document.getElementById('pomp');
+    var slowPower = document.getElementById('slow');
+    var fastPower = document.getElementById('fast');
+    pompPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(pompPower.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            pompPower.classList.remove('power-on');
+            pompPower.classList.add('power-off');
+            pompPower.setAttribute('val','0');
+        }else if(pompPower.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            pompPower.classList.remove('power-off');
+            pompPower.classList.add('power-on');
+            pompPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    slowPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(slowPower.getAttribute('val')=="1"){
+            deviceCommands.command2 = 0;
+            slowPower.classList.remove('power-on');
+            slowPower.classList.add('power-off');
+            slowPower.setAttribute('val','0');
+        }else if(slowPower.getAttribute('val')=="0"){
+            deviceCommands.command2 = 1;
+            slowPower.classList.remove('power-off');
+            slowPower.classList.add('power-on');
+            slowPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    fastPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(fastPower.getAttribute('val')=="1"){
+            deviceCommands.command3 = 0;
+            fastPower.classList.remove('power-on');
+            fastPower.classList.add('power-off');
+            fastPower.setAttribute('val','0');
+        }else if(fastPower.getAttribute('val')=="0"){
+            deviceCommands.command3 = 1;
+            fastPower.classList.remove('power-off');
+            fastPower.classList.add('power-on');
+            fastPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function lockActions(){
+    var lock = document.getElementById('openLock');
+    lock.addEventListener('click',function(e){
+        e.preventDefault();
+        deviceCommands.command1 = 1;
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function curtainActions(){
+    var curtainRange = document.getElementById('curtainRange');
+    var curtainPercent = document.getElementById('curtainValue');
+    curtainRange.addEventListener('change',function(e){
+        e.preventDefault();
+        deviceCommands.data = curtainRange.value;
+        curtainPercent.innerHTML = curtainRange.value + "%";
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function buzzerAction(){
+    var buzzerOnOff = document.getElementById('buzzerOnOff');
+    buzzerOnOff.addEventListener("change",(e)=>{
+        e.preventDefault();
+        if(buzzerOnOff.checked){
+            devicecommands.command1 = 1;
+        }else{
+            deviceCommands.command1 = 0;
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(commands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function touchkeyOneBridgeActions(){
+    var bridgeOnePower = document.getElementById('bridge1');
+    bridgeOnePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            bridgeOnePower.classList.remove('power-on');
+            bridgeOnePower.classList.add('power-off');
+            bridgeOnePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            bridgeOnePower.classList.remove('power-off');
+            bridgeOnePower.classList.add('power-on');
+            bridgeOnePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function touchkeyTwoBridgeActions(){
+    var bridgeOnePower = document.getElementById('bridge1');
+    var bridgeTwoPower = document.getElementById('bridge2');
+    bridgeOnePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            bridgeOnePower.classList.remove('power-on');
+            bridgeOnePower.classList.add('power-off');
+            bridgeOnePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            bridgeOnePower.classList.remove('power-off');
+            bridgeOnePower.classList.add('power-on');
+            bridgeOnePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeTwoPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeTwoPower.getAttribute('val')=="1"){
+            deviceCommands.command2 = 0;
+            bridgeTwoPower.classList.remove('power-on');
+            bridgeTwoPower.classList.add('power-off');
+            bridgeTwoPower.setAttribute('val','0');
+        }else if(bridgeTwoPower.getAttribute('val')=="0"){
+            deviceCommands.command2 = 1;
+            bridgeTwoPower.classList.remove('power-off');
+            bridgeTwoPower.classList.add('power-on');
+            bridgeTwoPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function touchkeyThreeBridgeActions(){
+    var bridgeOnePower = document.getElementById('bridge1');
+    var bridgeTwoPower = document.getElementById('bridge2');
+    var bridgeThreePower = document.getElementById('bridge3');
+    bridgeOnePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            bridgeOnePower.classList.remove('power-on');
+            bridgeOnePower.classList.add('power-off');
+            bridgeOnePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            bridgeOnePower.classList.remove('power-off');
+            bridgeOnePower.classList.add('power-on');
+            bridgeOnePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeTwoPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeTwoPower.getAttribute('val')=="1"){
+            deviceCommands.command2 = 0;
+            bridgeTwoPower.classList.remove('power-on');
+            bridgeTwoPower.classList.add('power-off');
+            bridgeTwoPower.setAttribute('val','0');
+        }else if(bridgeTwoPower.getAttribute('val')=="0"){
+            deviceCommands.command2 = 1;
+            bridgeTwoPower.classList.remove('power-off');
+            bridgeTwoPower.classList.add('power-on');
+            bridgeTwoPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeThreePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command3 = 0;
+            bridgeThreePower.classList.remove('power-on');
+            bridgeThreePower.classList.add('power-off');
+            bridgeThreePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command3 = 1;
+            bridgeThreePower.classList.remove('power-off');
+            bridgeThreePower.classList.add('power-on');
+            bridgeThreePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
+function touchkeyFourBridgeActions(){
+    var bridgeOnePower = document.getElementById('bridge1');
+    var bridgeTwoPower = document.getElementById('bridge2');
+    var bridgeThreePower = document.getElementById('bridge3');
+    var bridgeFourPower = document.getElementById('bridge4');
+    bridgeOnePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command1 = 0;
+            bridgeOnePower.classList.remove('power-on');
+            bridgeOnePower.classList.add('power-off');
+            bridgeOnePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command1 = 1;
+            bridgeOnePower.classList.remove('power-off');
+            bridgeOnePower.classList.add('power-on');
+            bridgeOnePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceComponents));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeTwoPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeTwoPower.getAttribute('val')=="1"){
+            deviceCommands.command2 = 0;
+            bridgeTwoPower.classList.remove('power-on');
+            bridgeTwoPower.classList.add('power-off');
+            bridgeTwoPower.setAttribute('val','0');
+        }else if(bridgeTwoPower.getAttribute('val')=="0"){
+            deviceCommands.command2 = 1;
+            bridgeTwoPower.classList.remove('power-off');
+            bridgeTwoPower.classList.add('power-on');
+            bridgeTwoPower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeThreePower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command3 = 0;
+            bridgeThreePower.classList.remove('power-on');
+            bridgeThreePower.classList.add('power-off');
+            bridgeThreePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command3 = 1;
+            bridgeThreePower.classList.remove('power-off');
+            bridgeThreePower.classList.add('power-on');
+            bridgeThreePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+    bridgeFourPower.addEventListener("click",(e)=>{
+        e.preventDefault();
+        if(bridgeOnePower.getAttribute('val')=="1"){
+            deviceCommands.command4 = 0;
+            bridgeThreePower.classList.remove('power-on');
+            bridgeThreePower.classList.add('power-off');
+            bridgeThreePower.setAttribute('val','0');
+        }else if(bridgeOnePower.getAttribute('val')=="0"){
+            deviceCommands.command4 = 1;
+            bridgeThreePower.classList.remove('power-off');
+            bridgeThreePower.classList.add('power-on');
+            bridgeThreePower.setAttribute('val','1');
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
 
 async function sendStatusandVersionRequest(){
     deviceCommands.device="v";
@@ -106,8 +423,16 @@ async function sendStatusandVersionRequest(){
     mqtt.send(message);
 }
 
+
+async function sendStatus(){
+    deviceCommands.command1="s";
+    var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+    console.log(topic);
+    message.destinationName = topic;
+    mqtt.send(message);
+}
+
 function onMessageArrived(msg){
-    console.log("Message");
     var deviceStatus = JSON.parse(msg.payloadString);
     console.log(deviceStatus);
     if(deviceStatus.version!=null){
@@ -169,6 +494,9 @@ function onMessageArrived(msg){
                     }
                 }
                 break;
+            case "FLOWERPOT":
+                potCirProg.value = message.pot
+                break;
             case "SENSOR":
                 var mq2Status = document.getElementById('mq2Status');
                 var progress = document.getElementById('mq2Progress');
@@ -195,6 +523,177 @@ function onMessageArrived(msg){
                     }
                 }
                 break;
+            case "LOCK":
+                var lockButton = document.getElementById('openLock');
+                if(deviceStatus.status1){
+                    lockButton.classList.remove('btn-danger');
+                    lockButton.classList.add('btn-warning');
+                }else{
+                    lockButton.classList.remove('btn-warning');
+                    lockButton.classList.add('btn-danger');
+                }
+                break;
+            case "SOCKET":
+                var socket = document.getElementById('socket');
+                if(deviceStatus.status1){
+                    socket.setAttribute('val','1');
+                    socket.classList.remove('power-off');
+                    socket.classList.add('power-on');
+                }else{
+                    socket.setAttribute('val','0');
+                    socket.classList.remove('power-on');
+                    socket.classList.add('power-off');
+                }
+                break;
+            case "THERMOSTAT":
+                if(deviceStatus.temperature!=null){
+                    var temp = message.temperature;
+                    thermostatTemp.value = temp;
+                }
+                if(deviceStatus.humidity!=null){
+                    var hum = message.humidity;
+                    thermostatHum.value = hum;
+                }
+                break;
+            case "TOUCHKEY":
+                var bridge1 = document.getElementById('bridge1');
+                if(deviceStatus.status1){
+                    bridge1.setAttribute('val','1');
+                    bridge1.classList.remove('power-off');
+                    bridge1.classList.add('power-on');
+                }else{
+                    bridge1.setAttribute('val','0');
+                    bridge1.classList.remove('power-on');
+                    bridge1.classList.add('power-off');
+                }
+                break;
+            case "TOUCHKEY_2B":
+                var bridge1 = document.getElementById('bridge1');
+                var bridge2 = document.getElementById('bridge2');
+                if(deviceStatus.status1){
+                    bridge1.setAttribute('val','1');
+                    bridge1.classList.remove('power-off');
+                    bridge1.classList.add('power-on');
+                }else{
+                    bridge1.setAttribute('val','0');
+                    bridge1.classList.remove('power-on');
+                    bridge1.classList.add('power-off');
+                }
+                if(deviceStatus.status2){
+                    bridge2.setAttribute('val','1');
+                    bridge2.classList.remove('power-off');
+                    bridge2.classList.add('power-on');
+                }else{
+                    bridge2.setAttribute('val','0');
+                    bridge2.classList.remove('power-on');
+                    bridge2.classList.add('power-off');
+                }
+                break;
+            case "TOUCHKEY_3B":
+                var bridge1 = document.getElementById('bridge1');
+                var bridge2 = document.getElementById('bridge2');
+                var bridge3 = document.getElementById('bridge3');
+                if(deviceStatus.status1){
+                    bridge1.setAttribute('val','1');
+                    bridge1.classList.remove('power-off');
+                    bridge1.classList.add('power-on');
+                }else{
+                    bridge1.setAttribute('val','0');
+                    bridge1.classList.remove('power-on');
+                    bridge1.classList.add('power-off');
+                }
+                if(deviceStatus.status2){
+                    bridge2.setAttribute('val','1');
+                    bridge2.classList.remove('power-off');
+                    bridge2.classList.add('power-on');
+                }else{
+                    bridge2.setAttribute('val','0');
+                    bridge2.classList.remove('power-on');
+                    bridge2.classList.add('power-off');
+                }
+                if(deviceStatus.status3){
+                    bridge3.setAttribute('val','1');
+                    bridge3.classList.remove('power-on');
+                    bridge3.classList.add('power-off');
+                }else{
+                    bridge3.setAttribute('val','0');
+                    bridge3.classList.remove('power-off');
+                    bridge3.classList.add('power-on');
+                }
+                break;
+            case "TOUCHKEY_4B":
+                var bridge1 = document.getElementById('bridge1');
+                var bridge2 = document.getElementById('bridge2');
+                var bridge3 = document.getElementById('bridge3');
+                var bridge4 = document.getElementById('bridge4');
+                if(deviceStatus.status1){
+                    bridge1.setAttribute('val','1');
+                    bridge1.classList.remove('power-off');
+                    bridge1.classList.add('power-on');
+                }else{
+                    bridge1.setAttribute('val','0');
+                    bridge1.classList.remove('power-on');
+                    bridge1.classList.add('power-off');
+                }
+                if(deviceStatus.status2){
+                    bridge2.setAttribute('val','1');
+                    bridge2.classList.remove('power-off');
+                    bridge2.classList.add('power-on');
+                }else{
+                    bridge2.setAttribute('val','0');
+                    bridge2.classList.remove('power-on');
+                    bridge2.classList.add('power-off');
+                }
+                if(deviceStatus.status3){
+                    bridge3.setAttribute('val','1');
+                    bridge3.classList.remove('power-on');
+                    bridge3.classList.add('power-off');
+                }else{
+                    bridge3.setAttribute('val','0');
+                    bridge3.classList.remove('power-off');
+                    bridge3.classList.add('power-on');
+                }
+                if(deviceStatus.status4){
+                    bridge4.setAttribute('val','1');
+                    bridge4.classList.remove('power-on');
+                    bridge4.classList.add('power-off');
+                }else{
+                    bridge4.setAttribute('val','0');
+                    bridge4.classList.remove('power-off');
+                    bridge4.classList.add('power-on');
+                }
+                break;
+            case "VALVE":
+                var valve = document.getElementById('valveOnOff');
+                if(deviceStatus.status1){
+                    valve.checked = true;
+                }else{
+                    valve.checked = false;
+                }
+                break;
+            case "HEIGHTDETECTOR":
+                var heightText = document.getElementById('height');
+                if(deviceStatus.height!=null){
+                    heightText.innerHTML = message.height;
+                }
+                break;
+            case "WINDOW_DOORSENSOR":
+                var windowText = document.getElementById('windowStatus');
+                if(deviceStatus.status1){
+                    windowText.innerHTML = "بسته است";
+                }else{
+                    windowText.innerHTML = "باز است";
+                }
+                break;
+            case "CURTAIN":
+                var curtainPercent = document.getElementById('curtainValue');
+                var curtainRange = document.getElementById('curtainRange');
+                if(deviceStatus.percent!=null){
+                    curtainPercent.innerHTML = (99 - message.percent) + "%";
+                    curtainRange.value = 99 - message.percent;
+                }
+                break;
+                
             default:
                 break;
         }
@@ -203,6 +702,8 @@ function onMessageArrived(msg){
 
 function onConnect(){
     console.log('CONNECTED');
+    mqtt.subscribe(statusTopic);
+    console.log("Subscribed");
     sendStatusandVersionRequest().then(()=>{
         setTimeout(()=>{
           if(!connectionStatus){
@@ -210,6 +711,7 @@ function onConnect(){
               version.innerHTML = "خطا در دریافت نسخه دستگاه";
           }
         },5000);
+        sendStatus();
     });
 }
 
@@ -219,8 +721,8 @@ function onFailure(){
 
 function mqttConnect(client){
     var option = {
-        userName:"admin",
-        password:"admin123",
+        userName:brokerUsername,
+        password:brokerPassword,
         timeout:3,
         onSuccess: onConnect,
         onFailure:onFailure,
@@ -235,22 +737,59 @@ getDeviceByID(deviceId,uuid,token).then(getDeviceByIDResponse=>{
             topic = uuid + "/" + getBuildingResponse["data"]["subtopic"] + "/" + getPlaceResponse["data"]["subtopic"] + "/" + getDeviceByIDResponse["data"]["subtopic"];
             statusTopic = topic + "/status";
             mqttConnect(mqtt);
-            setTimeout(function(){
-                mqtt.subscribe(statusTopic);
-                console.log("Subscribed");
-            },500);
             deviceDiv.insertAdjacentHTML("beforeend",deviceHtml);
-        }));
+        })).finally(function(){
+            switch (getDeviceByIDResponse["data"]["type"]) {
+                case "BUZZER":
+                    buzzerAction();
+                    break;
+                case "SOCKET":
+                    socketActions();
+                    break;
+                case "COOLER_KEY":
+                    coolerKeyActions();
+                    break;
+                case "TOUCHKEY":
+                    touchkeyOneBridgeActions();
+                    break;
+                case "TOUCHKEY_2B":
+                    touchkeyTwoBridgeActions();
+                    break;
+                case "TOUCHKEY_3B":
+                    touchkeyThreeBridgeActions();
+                    break;
+                case "TOUCHKEY_4B":
+                    touchkeyFourBridgeActions();
+                    break;
+                case "THERMOSTAT":
+                    thermostatTemp = new CircleProgress('#temperatureCirProg',{
+                        max:100,
+                        value:0,
+                        textFormat:function(value){
+                            return unicodeDegCel + " " + value;
+                        }
+                    });
+                
+                    thermostatHum = new CircleProgress('#humidityCirProg',{
+                        max:100,
+                        value:0,
+                        textFormat:'percent'
+                    });
+                    break;
+                case "FLOWERPOT":
+                    potCirProg = new CircleProgress('#potCirProg',{
+                        max:100,
+                        value:0,
+                        textFormat:'percent'
+                    });
+                    break;
+            
+                default:
+                    break;
+            }
+        });
     }));
     deviceType = getDeviceByIDResponse["data"]["type"];
-    switch (getDeviceByIDResponse["data"]["type"]) {
-        case "TOUCHKEY_2B":
-            
-            break;
-    
-        default:
-            break;
-    }
     devicePulicNameDiv.innerHTML = devicePublicName[getDeviceByIDResponse["data"]["type"]];
     deviceNameDiv.innerHTML = getDeviceByIDResponse["data"]["name"];
     deviceIconImage.setAttribute("src",deviceIcon[getDeviceByIDResponse["data"]["type"]])

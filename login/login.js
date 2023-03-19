@@ -2,6 +2,8 @@ var host = "http://185.2.14.188"
 
 var usernameInput = document.getElementById("username");
 var passwordInput = document.getElementById("password");
+var loginAuthButton = document.getElementById("loginAuthButton");
+var spinner = document.getElementById("spinner");
 
 function login(username,password){
     var url = host + "/SmartHomeV3/login";
@@ -10,6 +12,7 @@ function login(username,password){
 
     http.onreadystatechange = function(){
         if(this.readyState==4 & this.status==200){
+            console.log(this.responseText);
             loginResponse = JSON.parse(this.response);
             if(loginResponse["status"]){
                 sessionStorage.setItem("token",loginResponse["data"]["token"]);
@@ -32,8 +35,8 @@ function login(username,password){
     http.send(JSON.stringify(body));
 }
 
-var loginAuthButton = document.getElementById("loginAuthButton");
+spinner.classList.remove("show");
 
 loginAuthButton.addEventListener("click",function(){
-    login("admin","admin123");
+    login(usernameInput.value,passwordInput.value);
 });
