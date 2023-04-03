@@ -216,7 +216,7 @@ function buzzerAction(){
         }else{
             deviceCommands.command1 = 0;
         }
-        var message = new Paho.MQTT.Message(JSON.stringify(commands));
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
         message.destinationName = topic;
         mqtt.send(message);
     });

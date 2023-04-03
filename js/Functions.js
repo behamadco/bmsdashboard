@@ -273,3 +273,51 @@ export function getBmsSubDevices(devEui,uuid,token){
         http.send(JSON.stringify(body));
     });
 }
+
+export function getBmsDevice(devEui,uuid,token){
+    var url = host + "/BuildingManagementSystem/getBmsDevice"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "deveui": devEui,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function getAllFridges(uuid,token){
+    var url = host + "/SmartFridge/getAllFridges"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}

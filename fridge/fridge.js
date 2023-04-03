@@ -1,10 +1,10 @@
-import { getAllBmsDevices, getAllNotification } from "../js/Functions.js";
+import { getAllFridges, getAllNotification } from "../js/Functions.js";
 
 var uuid = sessionStorage.getItem("uuid");
 var token = sessionStorage.getItem("token");
 var username = sessionStorage.getItem("username");
 
-var bmsDeviceDiv = document.getElementById("bmsDeviceDiv");
+var bmsDeviceDiv = document.getElementById("fridgeDiv");
 var usernameElement = document.getElementById("username");
 var spinner = document.getElementById("spinner");
 
@@ -18,12 +18,12 @@ getAllNotification(uuid,token).then(res =>{
     })).finally(()=>{notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"});
 });
 
-getAllBmsDevices(uuid,token).then(getAllBmsDevicesResponse=>{
-    fetch("components/deviceRow.html").then(componentResponse=>componentResponse.text().then(bmsDeviceHtml=>{
+getAllFridges(uuid,token).then(getAllFridgesResponse=>{
+    fetch("components/deviceRow.html").then(componentResponse=>componentResponse.text().then(fridgeHtml=>{
         var devicesElemenets = [];
-        for(var index in getAllBmsDevicesResponse["data"]){
-            bmsDeviceDiv.insertAdjacentHTML("beforeend",bmsDeviceHtml.replace("#devName",getAllBmsDevicesResponse["data"][index]["devname"]).replace("#devId",getAllBmsDevicesResponse["data"][index]["devEui"]));
-            var eventListenerElemenet = document.getElementById(getAllBmsDevicesResponse["data"][index]["devEui"])
+        for(var index in getAllFridgesResponse["data"]){
+            bmsDeviceDiv.insertAdjacentHTML("beforeend",fridgeHtml.replace("#fridgeName",getAllFridgesResponse["data"][index]["name"]).replace("#fridgeId",getAllFridgesResponse["data"][index]["id"]));
+            var eventListenerElemenet = document.getElementById(getAllFridgesResponse["data"][index]["id"])
             if(eventListenerElemenet!=null){
                 devicesElemenets.push(eventListenerElemenet);
             }
@@ -34,8 +34,8 @@ getAllBmsDevices(uuid,token).then(getAllBmsDevicesResponse=>{
         elementResponse.forEach(function(element) {
             element.addEventListener("click",function(e){
                 e.preventDefault();
-                localStorage.setItem("bmsDevicePageDevEUI",this.getAttribute("id"))
-                location.replace("/bmsDevice")
+                localStorage.setItem("fridgeDevicePage",this.getAttribute("id"))
+                location.replace("/fridgeDevice")
             },false);
         })
     });
