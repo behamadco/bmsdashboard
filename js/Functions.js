@@ -321,3 +321,58 @@ export function getAllFridges(uuid,token){
         http.send(JSON.stringify(body));
     });
 }
+
+export function getFridge(fridgeId,uuid,token) {
+    var url = host + "/SmartFridge/getFridge";
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "fridgeid": fridgeId,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+export function getTemperatureToday(fridgeId,uuid,token) {
+    var url = host + "/SmartFridge/getTemperatureBetweenDates";
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+
+        var date = new Date();
+
+        var startDate = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " " + "00" + ":" + "00" + ":" + "00";
+        var endDate = date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + " " + "23" + ":" + "59" + ":" + "59";
+    
+        var body = {
+            "fridgeid": fridgeId,
+            "startdate": startDate,
+            "enddate": endDate,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}

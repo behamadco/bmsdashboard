@@ -1,12 +1,3 @@
-<?php
-    include "./Functions.php";
-    include "./vendors/pubVariable.php";
-    $allDevices = getBmsDevices($_SESSION['behamad_uuid'],$_SESSION['behamad_token']) -> data;
-    $notifications = getAllNotification($_SESSION['behamad_uuid'],$_SESSION['behamad_token']) -> data;
-    $lastNotifications = array_slice($notifications,1,3);
-?>
-
-
 <!DOCTYPE html>
 <html dir="rtl" lang="fa">
     <head>
@@ -38,7 +29,7 @@
 
 
         <!-- Sidebar Start -->
-        <div class="sidebar pe-4 pb-3">
+        <div class="sidebar pe-4 pb-3 open">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="index.html" class="navbar-brand mx-4 mb-3">
                     <img src="/img/behamad-logo.png" class="main-logo" style="width: 120px; height: 70px;" alt="">
@@ -49,20 +40,20 @@
                         <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
                     </div>
                     <div class="ms-3">
-                        <h6 class="mb-0"><?= $_SESSION['behamad_name'] ?></h6>
-                        <span><?= $_SESSION['behamad_username'] ?></span>
+                        <h6 class="mb-0" id="name"></h6>
+                        <span id="username"></span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
                     <a href="/dashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>داشبورد</a>
                     <a href="/dashboard/devices" class="nav-item nav-link"><i class="fas fa-home me-2"></i>خانه هوشمند</a>
-                    <a href="/dashboard/bms" class="nav-item nav-link"><i class="fa fa-building me-2"></i>ساختمان هوشمند</a>
-                    <a href="/dashboard/charts" class="nav-item nav-link active"><i class="fa fa-clock me-2"></i>سناریو ها</a>
+                    <a href="/dashboard/bms" class="nav-item nav-link active"><i class="fa fa-building me-2"></i>ساختمان هوشمند</a>
+                    <a href="/dashboard/charts" class="nav-item nav-link"><i class="fa fa-clock me-2"></i>سناریو ها</a>
                 </div>
             </nav>
         </div>
 
-        <div class="content">
+        <div class="content open">
             <!-- Navbar Start -->
             <nav dir="ltr" class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -74,15 +65,8 @@
                             <i class="fa fa-bell me-lg-2"></i>
                             <span class="d-none d-lg-inline-flex">اطلاعیه</span>
                         </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <?php foreach($lastNotifications as $notfication): ?>
-                                <a href="#" class="dropdown-item">
-                                    <h6 class="fw-normal mb-0"><?= $notfication -> subject ?></h6>
-                                </a>
-                                <hr class="dropdown-divider">
-                            <?php endforeach ?>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item text-center">دیدن همه اطلاعیه ها</a>
+                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0" id="notificationDiv">
+                            
                         </div>
                     </div>
                 </div>
@@ -94,22 +78,22 @@
                     <div class="col-sm-6 col-xl-6 section">
                             <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
                                 <h4>دستگاه مبدا</h4>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="bmsScenarioSource">
-                                    <option selected>انتخاب کنید</option>
-                                    <?php foreach($allDevices as $device): ?>
-                                        <option value=<?= $device->deviceid ?> appid=<?= $device->deviceappid ?> eui=<?= $device -> deviceeui ?>> <?= $device -> devicename ?> </option>
-                                    <?php endforeach ?>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="sourceDeviceDiv">
+                                </select>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="sourceBridge" style="display: none;">
+                                </select>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="sourceActionDiv">
                                 </select>
                             </div>
                     </div>
                     <div class="col-sm-6 col-xl-6 section">
                             <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
                                 <h4>دستگاه مقصد</h4>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="bmsScenarioDestination">
-                                    <option selected>انتخاب کنید</option>
-                                    <?php foreach($allDevices as $device): ?>
-                                        <option value=<?= $device->deviceid ?> type=<?= $device -> devicetype ?> appid=<?= $device->deviceappid ?> eui=<?= $device -> deviceeui ?>> <?= $device -> devicename ?> </option>
-                                    <?php endforeach ?>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationDeviceDiv">
+                                </select>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationBridge" style="display: none;">
+                                </select>
+                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationActionDiv" >
                                 </select>
                             </div>
                     </div>
@@ -117,7 +101,7 @@
                 <div class="row bg-dark rounded align-items-start justify-content-center">
                     <div class="col-sm-12 col-xl-12 section">
                         <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
-                            <button class="btn btn-info btn-block" id="submitBmsScenario">
+                            <button class="btn btn-info btn-block" id="submitScenario">
                                 ثبت سناریو
                             </button>
                         </div>
@@ -149,5 +133,6 @@
     <script src="/js/circle-progress.min.js"></script>
     <script src="/js/circle-range.js"></script>
     <script src="/js/main.js"></script>
+    <script src="devicescenario.js" type="module"></script>
 </body>
 </html>
