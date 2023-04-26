@@ -1,4 +1,4 @@
-import { getBuilding, getDeviceByID, getPlace, getFridge, getTemperatureToday, getAllNotification } from "../js/Functions.js";
+import { getFridge, getTemperatureToday, getAllNotification } from "../js/Functions.js";
 
 var uuid = sessionStorage.getItem("uuid");
 var token = sessionStorage.getItem("token");
@@ -11,17 +11,15 @@ var connectionStatus = false;
 var deviceType;
 let unicodeDegCel = '℃';
 var mqtt = new Paho.MQTT.Client("185.2.14.188",9001,"BMS Dash");
+var thermostatTemp;
 
 var deviceCommands = {
-    "command1":"x",
-    "command2":"x",
-    "command3":"x",
-    "command4":"x",
+    "fid":"x",
+    "IMEI":"x",
+    "agent":"x",
+    "interval":"x",
     "device":"x",
-    "data":"x",
-    "did":0,
-    "min":0,
-    "max":0
+    "data":"x"
 };
 var spinner = document.getElementById("spinner");
 var fridgeDiv = document.getElementById("fridge");
@@ -35,9 +33,7 @@ var connectStatus = document.getElementById("connectStatus");
 var notificationDiv = document.getElementById("notificationDiv");
 
 var version = document.getElementById("version");
-var potCirProg;
-var thermostatTemp;
-var thermostatHum;
+
 var chart = document.getElementById("fridgeChart");
 
 async function sendStatusandVersionRequest(){
@@ -60,13 +56,21 @@ async function sendStatus(){
 function onMessageArrived(msg){
     var deviceStatus = JSON.parse(msg.payloadString);
     console.log(deviceStatus);
-    
+
+    if(deviceStatus.version!=null){
+        connectStatus.innerHTML = "متصل";
+        version.innerHTML = deviceStatus.version;
+        connectStatus = true;
+        connectStatus.classList.remove("not-connected");
+        connectStatus.classList.add("connectivity");
+    }
 }
 
 function onConnect(){
     console.log('CONNECTED');
     mqtt.subscribe(statusTopic);
     console.log("Subscribed");
+    sendStatusandVersionRequest();
 }
 
 function onFailure(){
@@ -102,6 +106,7 @@ getFridge(fridgeId,uuid,token).then(getFridgeResponse=>{
     getTemperatureToday(fridgeId,uuid,token).then(getTemperatureTodayResponse=>{
         var temperatureData = getTemperatureTodayResponse["data"];
         var chartData = [];
+        console.log(temperatureData);
         for(var index in temperatureData){
             var tempDate = new Date(temperatureData[index]["timestamp"])
             var timeOfTemp = tempDate.getHours()+":"+tempDate.getMinutes()+":"+tempDate.getSeconds();
@@ -110,6 +115,9 @@ getFridge(fridgeId,uuid,token).then(getFridgeResponse=>{
         }
         fetch("components/thermostat.html").then(componentResponse=>{
             componentResponse.text().then(fridgeHtml=>{
+                topic = fridgeData["macAddress"];
+                statusTopic = fridgeData["macAddress"] + "/status";
+                mqttConnect(mqtt);
                 fridgeDiv.insertAdjacentHTML("beforeend",fridgeHtml);
                 thermostatTemp = new CircleProgress('#temperatureCirProg',{
                     max:100,

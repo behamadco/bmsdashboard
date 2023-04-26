@@ -369,6 +369,7 @@ export function getTemperatureToday(fridgeId,uuid,token) {
             "enddate": endDate,
             "useruuid": uuid
         }
+
     
         http.open("POST",url,true);
         http.setRequestHeader("Content-Type","application/json");
