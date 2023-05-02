@@ -36,6 +36,26 @@ var version = document.getElementById("version");
 
 var chart = document.getElementById("fridgeChart");
 
+var temperatureChart;
+
+
+function updateTemperatureChart(tempValue){
+    var temperatureChart = new CanvasJS.Chart("tempChart", {
+        animationEnabled: true,
+        data: [{
+            type: "doughnut",
+            startAngle: 60,
+            //innerRadius: 60,
+            indexLabelFontSize: 17,
+            dataPoints: [
+                { y: tempValue, label: "دما" },
+                {y: 100-tempValue, label:""}
+            ]
+        }]
+    });
+}
+
+
 async function sendStatusandVersionRequest(){
     deviceCommands.device="v";
     var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
@@ -60,9 +80,16 @@ function onMessageArrived(msg){
     if(deviceStatus.version!=null){
         connectStatus.innerHTML = "متصل";
         version.innerHTML = deviceStatus.version;
-        connectStatus = true;
+        connectionStatus = true;
         connectStatus.classList.remove("not-connected");
         connectStatus.classList.add("connectivity");
+    }
+
+    if(deviceStatus.temperature!=null){
+        if(deviceStatus.agent=="web"){
+            updateTemperatureChart(deviceStatus.temperature);
+            // thermostatTemp.value = deviceStatus.temperature;
+        }
     }
 }
 
@@ -70,7 +97,7 @@ function onConnect(){
     console.log('CONNECTED');
     mqtt.subscribe(statusTopic);
     console.log("Subscribed");
-    sendStatusandVersionRequest();
+    // sendStatusandVersionRequest();
 }
 
 function onFailure(){
@@ -119,13 +146,14 @@ getFridge(fridgeId,uuid,token).then(getFridgeResponse=>{
                 statusTopic = fridgeData["macAddress"] + "/status";
                 mqttConnect(mqtt);
                 fridgeDiv.insertAdjacentHTML("beforeend",fridgeHtml);
-                thermostatTemp = new CircleProgress('#temperatureCirProg',{
-                    max:100,
-                    value:0,
-                    textFormat:function(value){
-                        return unicodeDegCel + " " + value;
-                    }
-                });
+                updateTemperatureChart(0);
+                // thermostatTemp = new CircleProgress('#temperatureCirProg',{
+                //     max:100,
+                //     value:0,
+                //     textFormat:function(value){
+                //         return unicodeDegCel + " " + value;
+                //     }
+                // });
                 new Chart(chart,{
                     'type':'line',
                     'data': {
