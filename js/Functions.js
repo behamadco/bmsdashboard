@@ -227,6 +227,100 @@ export function getPlace(placeId,uuid,token){
     });
 }
 
+export function getScenarios(uuid,token){
+    var url = host + "/SmartHomeV3/getAllScenarios"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function getSchedules(uuid,token){
+    var url = host + "/SmartHomeV3/getAllSchedules"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+export function getAllSecurityScenarios(uuid,token){
+    var url = host + "/SmartHomeV3/getSecutityDefaultScenario";
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function getAllTravelScenario(uuid,token){
+    var url = host + "/SmartHomeV3/getAllTravelScenarios";
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
 export function getAllBmsDevices(uuid,token){
     var url = host + "/BuildingManagementSystem/getBmsDevices"
 

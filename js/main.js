@@ -1,3 +1,17 @@
+fetch("/widgets/sidebar.html").then(componentResponse=>{componentResponse.text().then(sidebarHtml=>{
+    var urlPath = {
+        "/dashboard/":"navDashboard",
+        "/devices/":"navDevices",
+        "/bms/":"navBms",
+        "/scenario/":"navScenario",
+        "/fridge/":"navFridge"
+    }
+    var sideBarDiv = document.getElementById("sidebarDiv");
+    sideBarDiv.insertAdjacentHTML("beforeend",sidebarHtml);
+    var navElement = document.getElementById(urlPath[window.location.pathname]);
+    navElement.classList.add("active");
+})});
+
 (function ($) {
     "use strict";
 

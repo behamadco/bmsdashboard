@@ -9,9 +9,12 @@ var topic;
 var statusTopic;
 var connectionStatus = false;
 var deviceType;
-let unicodeDegCel = '℃';
 var mqtt = new Paho.MQTT.Client("185.2.14.188",9001,"BMS Dash");
 var thermostatTemp;
+var fridgeID;
+var fridgeImei;
+
+
 
 var deviceCommands = {
     "fid":"x",
@@ -30,33 +33,18 @@ var simphonenumberDiv = document.getElementById("simphonenumber");
 var imeiDiv = document.getElementById("imei");
 var deviceIconImage = document.getElementById("deviceIcon");
 var connectStatus = document.getElementById("connectStatus");
+var temperatureValue
 var notificationDiv = document.getElementById("notificationDiv");
-
 var version = document.getElementById("version");
-
 var chart = document.getElementById("fridgeChart");
 
-var temperatureChart;
 
+function padWithLeadingZeros(num, totalLength) {
+    return String(num).padStart(totalLength, '0');
+  }
+  
 
-function updateTemperatureChart(tempValue){
-    var temperatureChart = new CanvasJS.Chart("tempChart", {
-        animationEnabled: true,
-        data: [{
-            type: "doughnut",
-            startAngle: 60,
-            //innerRadius: 60,
-            indexLabelFontSize: 17,
-            dataPoints: [
-                { y: tempValue, label: "دما" },
-                {y: 100-tempValue, label:""}
-            ]
-        }]
-    });
-}
-
-
-async function sendStatusandVersionRequest(){
+async function sendVersionRequest(){
     deviceCommands.device="v";
     var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
     console.log(topic);
@@ -65,12 +53,25 @@ async function sendStatusandVersionRequest(){
 }
 
 
-async function sendStatus(){
-    deviceCommands.command1="s";
+function sendStatus(){
+    console.log("sendStatus","Executed");
+    console.log("FID",fridgeID,"fridgeImei",fridgeImei)
+    deviceCommands.fid = fridgeID;
+    deviceCommands.IMEI = fridgeImei;
+    deviceCommands.agent = "web"; 
+    deviceCommands.device = "x";
     var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
     console.log(topic);
     message.destinationName = topic;
     mqtt.send(message);
+}
+
+
+function periodicalRequest(){
+    setInterval(()=>{
+        console.log("periodicalRequest","Executed!");
+        sendStatus();
+    },5000)
 }
 
 function onMessageArrived(msg){
@@ -87,8 +88,7 @@ function onMessageArrived(msg){
 
     if(deviceStatus.temperature!=null){
         if(deviceStatus.agent=="web"){
-            updateTemperatureChart(deviceStatus.temperature);
-            // thermostatTemp.value = deviceStatus.temperature;
+            temperatureValue.innerHTML = deviceStatus.temperature;
         }
     }
 }
@@ -97,7 +97,16 @@ function onConnect(){
     console.log('CONNECTED');
     mqtt.subscribe(statusTopic);
     console.log("Subscribed");
-    // sendStatusandVersionRequest();
+    sendVersionRequest().then(()=>{
+        setTimeout(()=>{
+            if(!connectionStatus){
+                connectStatus.innerHTML = "دستگاه متصل نیست و یا خاموش است";
+                version.innerHTML = "خطا در دریافت نسخه دستگاه";
+            }
+          },5000);
+          sendStatus();
+          periodicalRequest();
+    });
 }
 
 function onFailure(){
@@ -130,13 +139,15 @@ getFridge(fridgeId,uuid,token).then(getFridgeResponse=>{
     fridgeNameDiv.innerHTML = fridgeData["name"];
     simphonenumberDiv.innerHTML = fridgeData["simPhoneNumber"];
     imeiDiv.innerHTML = fridgeData["imei"];
+    fridgeImei = fridgeData["imei"];
+    fridgeID = fridgeData["id"];
     getTemperatureToday(fridgeId,uuid,token).then(getTemperatureTodayResponse=>{
         var temperatureData = getTemperatureTodayResponse["data"];
         var chartData = [];
         console.log(temperatureData);
         for(var index in temperatureData){
             var tempDate = new Date(temperatureData[index]["timestamp"])
-            var timeOfTemp = tempDate.getHours()+":"+tempDate.getMinutes()+":"+tempDate.getSeconds();
+            var timeOfTemp = padWithLeadingZeros(tempDate.getHours(),2)+":"+padWithLeadingZeros(tempDate.getMinutes(),2)+":"+padWithLeadingZeros(tempDate.getSeconds(),2);
             var context = {"x":timeOfTemp,"y":temperatureData[index]["value"]};
             chartData.push(context);
         }
@@ -145,15 +156,9 @@ getFridge(fridgeId,uuid,token).then(getFridgeResponse=>{
                 topic = fridgeData["macAddress"];
                 statusTopic = fridgeData["macAddress"] + "/status";
                 mqttConnect(mqtt);
-                fridgeDiv.insertAdjacentHTML("beforeend",fridgeHtml);
-                updateTemperatureChart(0);
-                // thermostatTemp = new CircleProgress('#temperatureCirProg',{
-                //     max:100,
-                //     value:0,
-                //     textFormat:function(value){
-                //         return unicodeDegCel + " " + value;
-                //     }
-                // });
+                fridgeDiv.insertAdjacentHTML("beforeend",fridgeHtml.replace("#temperatureValue","0"));
+                temperatureValue = document.getElementById("temperatureValue");
+                
                 new Chart(chart,{
                     'type':'line',
                     'data': {

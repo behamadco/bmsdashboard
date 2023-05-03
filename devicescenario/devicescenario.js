@@ -60,7 +60,7 @@ var touchkeys = [
     "TOUCHKEY_3B",
     "TOUCHKEY_4B",
     "TOUCHKEY_16B"
-  ];
+];
   
 var scenarioActionChoices = {
     "BUZZER":['روشن شود','خاموش شود'],
@@ -118,7 +118,7 @@ var commandDefinition = {
     "بسته شود":0,
     "روشن شود":1,
     "خاموش شود":0,
-  };
+};
   
 var bridgeDefinition = {
     "پل اول":"status1",
