@@ -12,12 +12,19 @@ var destinationActionDiv = document.getElementById("destinationActionDiv");
 
 var destinationBridge = document.getElementById("destinationBridge");
 
+var thermostatSelector = document.getElementById("thermostatSelector");
+
+var submitScenario = document.getElementById("submitScenario");
+
+var setPoint = document.getElementById("setPoint");
+
+
 var destinationDeviceName = "";
 
 var selectedSourceDeviceType = "";
 var selectedDestinationDeviceType = "";
 
-
+var sourceDeviceName = "";
 
 var sensorDevicesList = [];
 var commandDevicesList = [];
@@ -73,6 +80,12 @@ var scenarioActionChoices = {
   "DIMMER":["خاموش شود","روشن شود"]
 };
 
+var thermostatItems = ["دما","رطوبت"];
+
+var thermostatItemsKey = {
+    "دما":"temperature",
+    "رطوبت":"humidity"
+}
 
 var scenarioBridgeChoices = {
     "COOLER_KEY": ["دور کند", "دور تند"],
@@ -139,6 +152,49 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
             }
         }
 
+        var srcselectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
+        var srcselectedDeviceType = srcselectedOption.getAttribute("device-type");
+        sourceDeviceName = sourceDeviceDiv.text;
+        selectedSourceDeviceType = srcselectedDeviceType;
+        if(selectedSourceDeviceType=="THERMOSTAT"){
+            thermostatSelector.style.display="block";
+            thermostatSelector.innerHTML = "";
+            for(var index in thermostatItems){
+              var option = document.createElement("option");
+              option.setAttribute("value",thermostatItemsKey[thermostatItems[index]]);
+              option.text = thermostatItems[index];
+              thermostatSelector.add(option);
+            }
+          }else{
+            thermostatSelector.style.display="none";
+          }
+
+        sourceDeviceDiv.addEventListener("change",function(e) {
+            e.preventDefault();
+            var selectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
+            var selectedDeviceType = selectedOption.getAttribute("device-type");
+            selectedDestinationDeviceType = selectedDeviceType;
+            sourceDeviceName = sourceDeviceDiv.text;
+            if(selectedDeviceType=="THERMOSTAT"){
+              thermostatSelector.style.display="block";
+              thermostatSelector.innerHTML = "";
+              for(var index in thermostatItems){
+                var option = document.createElement("option");
+                option.setAttribute("value",thermostatItemsKey[thermostatItems[index]]);
+                option.text = thermostatItems[index];
+                thermostatSelector.add(option);
+              }
+            }else{
+              thermostatSelector.style.display="none";
+            }
+            for(var index in scenarioActionChoices[selectedDeviceType]){
+              var option = document.createElement("option");
+              option.setAttribute("value",commandDefinition[scenarioActionChoices[selectedDeviceType][index]]);
+              option.text = scenarioActionChoices[selectedDeviceType][index];
+              destinationActionDiv.add(option);
+            }
+          });
+
         var desselectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
         var desselectedDeviceType = desselectedOption.getAttribute("device-type");
         selectedDestinationDeviceType = desselectedDeviceType;
@@ -150,6 +206,74 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
           option.text = scenarioActionChoices[desselectedDeviceType][index];
           destinationActionDiv.add(option);
         }
+        if(touchkeys.includes(selectedDestinationDeviceType)){
+            destinationBridge.style.display="block";
+            destinationBridge.innerHTML = "";
+            for(var index in scenarioBridgeChoices[selectedDestinationDeviceType]){
+              var option = document.createElement("option");
+              option.setAttribute("value",bridgeCommandsDef[scenarioBridgeChoices[selectedDestinationDeviceType][index]]);
+              option.text = scenarioBridgeChoices[selectedDestinationDeviceType][index];
+              destinationBridge.add(option);
+            }
+          }else{
+            destinationBridge.style.display="none";
+          }
+
+
+
+        destinationDeviceDiv.addEventListener("change",function(e) {
+            e.preventDefault();
+            var selectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
+            var selectedDeviceType = selectedOption.getAttribute("device-type");
+            selectedDestinationDeviceType = selectedDeviceType;
+            destinationDeviceName = destinationDeviceDiv.text;
+            destinationActionDiv.innerHTML="";
+            if(touchkeys.includes(selectedDeviceType)){
+              destinationBridge.style.display="block";
+              destinationBridge.innerHTML = "";
+              for(var index in scenarioBridgeChoices[selectedDeviceType]){
+                var option = document.createElement("option");
+                option.setAttribute("value",bridgeCommandsDef[scenarioBridgeChoices[selectedDeviceType][index]]);
+                option.text = scenarioBridgeChoices[selectedDeviceType][index];
+                destinationBridge.add(option);
+              }
+            }else{
+              destinationBridge.style.display="none";
+            }
+            for(var index in scenarioActionChoices[selectedDeviceType]){
+              var option = document.createElement("option");
+              option.setAttribute("value",commandDefinition[scenarioActionChoices[selectedDeviceType][index]]);
+              option.text = scenarioActionChoices[selectedDeviceType][index];
+              destinationActionDiv.add(option);
+            }
+          });
+
+          submitScenario.addEventListener("click",function(e){
+            e.preventDefault();
+
+            scenarioPayload.scenarioName = ""
+
+            if(touchkeys.includes(selectedDestinationDeviceType)){
+                scenarioPayload.scenarioDestinationKey = destinationBridge.value;
+            }else{
+                scenarioPayload.scenarioDestinationKey = "command1"; 
+            }
+
+            if(!setPoint.value==''){
+                scenarioPayload.scenarioSetPoint = setPoint.value;
+            }
+
+            if(selectedSourceDeviceType=="THERMOSTAT"){
+                scenarioPayload.scenarioSourceKey = thermostatSelector.value;
+            }
+
+            scenarioPayload.scenarioSourceDevice = sourceDeviceDiv.value;
+            scenarioPayload.scenarioDestinationDevice = destinationDeviceDiv.value;
+
+            scenarioPayload.scenarioCommand = destinationActionDiv.value;
+
+            console.log(scenarioPayload);
+          });
     }))
 }).finally(()=>{
     spinner.classList.remove("show");
