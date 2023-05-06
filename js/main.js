@@ -1,5 +1,9 @@
 fetch("/widgets/sidebar.html").then(componentResponse=>{componentResponse.text().then(sidebarHtml=>{
     var urlPath = {
+        "/bmsDevice/": "navBms",
+        "/device/":"navDevices",
+        "/devicescenario/": "navScenario",
+        "/fridgeDevice/":"navFridge",
         "/dashboard/":"navDashboard",
         "/devices/":"navDevices",
         "/bms/":"navBms",

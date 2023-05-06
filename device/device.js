@@ -13,6 +13,27 @@ let unicodeDegCel = '℃';
 var mqtt = new Paho.MQTT.Client("185.2.14.188",9001,"BMS Dash");
 
 
+
+var touchkey16Bridges = [
+    document.getElementById("touch1"),
+    document.getElementById("touch2"),
+    document.getElementById("touch3"),
+    document.getElementById("touch4"),
+    document.getElementById("touch5"),
+    document.getElementById("touch6"),
+    document.getElementById("touch7"),
+    document.getElementById("touch8"),
+    document.getElementById("touch9"),
+    document.getElementById("touch10"),
+    document.getElementById("touch11"),
+    document.getElementById("touch12"),
+    document.getElementById("touch13"),
+    document.getElementById("touch14"),
+    document.getElementById("touch15"),
+    document.getElementById("touch16"),
+];
+
+
 var deviceComponents = {
     "BUZZER":"components/buzzer.html",
     "COOLER_KEY":"components/coolerKey.html",
@@ -103,6 +124,62 @@ var version = document.getElementById("version");
 var potCirProg;
 var thermostatTemp;
 var thermostatHum;
+
+
+function touchkey16Action(){
+
+    var touchkey16Bridges = [
+        document.getElementById("touch1"),
+        document.getElementById("touch2"),
+        document.getElementById("touch3"),
+        document.getElementById("touch4"),
+        document.getElementById("touch5"),
+        document.getElementById("touch6"),
+        document.getElementById("touch7"),
+        document.getElementById("touch8"),
+        document.getElementById("touch9"),
+        document.getElementById("touch10"),
+        document.getElementById("touch11"),
+        document.getElementById("touch12"),
+        document.getElementById("touch13"),
+        document.getElementById("touch14"),
+        document.getElementById("touch15"),
+        document.getElementById("touch16"),
+    ];
+
+
+    console.log("16Channel");
+
+    var defaultCommand = "xxxxxxxxxxxxxxxx";
+
+
+    touchkey16Bridges.forEach(function(touchElement){
+        touchElement.addEventListener("click",(e)=>{
+            e.preventDefault();
+            defaultCommand = "xxxxxxxxxxxxxxxx";
+            switch (touchElement.getAttribute("val")) {
+                case "1":
+                    defaultCommand = defaultCommand.substring(0,touchkey16Bridges.indexOf(touchElement)) + "0" + defaultCommand.substring(touchkey16Bridges.indexOf(touchElement),defaultCommand.length);
+                    touchElement.classList.remove("power-on");
+                    touchElement.classList.add("power-off");
+                    touchElement.setAttribute('val','0');
+                    break;
+                
+                case "0":
+                    defaultCommand = defaultCommand.substring(0,touchkey16Bridges.indexOf(touchElement)) + "1" + defaultCommand.substring(touchkey16Bridges.indexOf(touchElement),defaultCommand.length);
+                    touchElement.classList.remove("power-off");
+                    touchElement.classList.add("power-on");
+                    touchElement.setAttribute("val","1");
+                default:
+                    break;
+            }
+            deviceCommands.data = defaultCommand;
+            var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+            message.destinationName = topic;
+            mqtt.send(message);
+        });
+    });
+}
 
 function socketActions(){
     console.log("SOCKET");
@@ -415,6 +492,21 @@ function touchkeyFourBridgeActions(){
 }
 
 
+function valveAction(){
+    var valveSwitch = document.getElementById("valveSwitch");
+    valveSwitch.addEventListener("change",function(e){
+        e.preventDefault();
+        if(valveSwitch.checked){
+            deviceCommands.command1 = 1;
+        }else{
+            deviceCommands.command1 = 0;
+        }
+        var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+        message.destinationName = topic;
+        mqtt.send(message);
+    });
+}
+
 async function sendStatusandVersionRequest(){
     deviceCommands.device="v";
     var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
@@ -663,8 +755,42 @@ function onMessageArrived(msg){
                     bridge4.classList.add('power-on');
                 }
                 break;
+            case "TOUCHKEY_16B":
+                var touchkey16Bridges = [
+                    document.getElementById("touch1"),
+                    document.getElementById("touch2"),
+                    document.getElementById("touch3"),
+                    document.getElementById("touch4"),
+                    document.getElementById("touch5"),
+                    document.getElementById("touch6"),
+                    document.getElementById("touch7"),
+                    document.getElementById("touch8"),
+                    document.getElementById("touch9"),
+                    document.getElementById("touch10"),
+                    document.getElementById("touch11"),
+                    document.getElementById("touch12"),
+                    document.getElementById("touch13"),
+                    document.getElementById("touch14"),
+                    document.getElementById("touch15"),
+                    document.getElementById("touch16"),
+                ];
+
+                var bridgeData = deviceStatus.data;
+                var arrayOfData = bridgeData.split('');
+                touchkey16Bridges.forEach(function(touchElemenet){
+                    var indexOfElement = touchkey16Bridges.indexOf(touchElemenet);
+                    touchElemenet.setAttribute("val",arrayOfData[indexOfElement]);
+                    if(arrayOfData[indexOfElement]==0){
+                        touchElemenet.classList.remove("power-on");
+                        touchElemenet.classList.add("power-off");
+                    }else{
+                        touchElemenet.classList.remove("power-off");
+                        touchElemenet.classList.add("power-on");
+                    }
+                });
+                break;
             case "VALVE":
-                var valve = document.getElementById('valveOnOff');
+                var valve = document.getElementById('valveSwitch');
                 if(deviceStatus.status1){
                     valve.checked = true;
                 }else{
@@ -746,6 +872,9 @@ getDeviceByID(deviceId,uuid,token).then(getDeviceByIDResponse=>{
                 case "SOCKET":
                     socketActions();
                     break;
+                case "VALVE":
+                    valveAction();
+                    break;
                 case "COOLER_KEY":
                     coolerKeyActions();
                     break;
@@ -761,6 +890,8 @@ getDeviceByID(deviceId,uuid,token).then(getDeviceByIDResponse=>{
                 case "TOUCHKEY_4B":
                     touchkeyFourBridgeActions();
                     break;
+                case "TOUCHKEY_16B":
+                    touchkey16Action();
                 case "THERMOSTAT":
                     thermostatTemp = new CircleProgress('#temperatureCirProg',{
                         max:100,
@@ -783,6 +914,8 @@ getDeviceByID(deviceId,uuid,token).then(getDeviceByIDResponse=>{
                         textFormat:'percent'
                     });
                     break;
+                case "LOCK":
+                    lockActions();
             
                 default:
                     break;
