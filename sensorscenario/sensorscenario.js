@@ -14,6 +14,8 @@ var destinationBridge = document.getElementById("destinationBridge");
 
 var thermostatSelector = document.getElementById("thermostatSelector");
 
+var sensorCondition = document.getElementById("sensorCondition");
+
 var submitScenario = document.getElementById("submitScenario");
 
 var setPoint = document.getElementById("setPoint");
@@ -29,7 +31,7 @@ var sourceDeviceName = "";
 var sensorDevicesList = [];
 var commandDevicesList = [];
 
-var sensorDevices = ["THERMOSTAT","SENSOR","MOTIONDETECTOR"];
+var sensorDevices = ["THERMOSTAT", "MOTIONDETECTOR"];
 var commandDevices = ["BUZZER","COOLER_KEY","LOCK","SOCKET","TOUCHKEY","TOUCHKEY_2B","TOUCHKEY_3B","TOUCHKEY_4B","TOUCHKEY_16B","VALVE","CURTAIN","DIMMER"]
 
 
@@ -105,7 +107,6 @@ var commandDefinition = {
 
 var sensorStatusKey = {
     "MOTIONDETECTOR":"status1",
-    "SENSOR":"mq2",
     "THERMOSTAT":["temperature", "humidity"]
 }
 
@@ -128,6 +129,24 @@ var bridgeCommandsDef = {
     "دور تند":"command3"
 };
 
+
+function conditionCreator(){
+  var lessThanOption = document.createElement("option");
+  lessThanOption.text = "کمتر ";
+  lessThanOption.setAttribute("value","<");
+  sensorCondition.add(lessThanOption);
+
+  var equalOption = document.createElement("option");
+  equalOption.text = "برابر";
+  equalOption.setAttribute("value","=");
+  sensorCondition.add(equalOption);
+
+  var moreThanOption = document.createElement("option");
+  moreThanOption.text = "بیشتر";
+  moreThanOption.setAttribute("value",">");
+  sensorCondition.add(moreThanOption);
+
+}
 
 getAllNotification(uuid,token).then(res =>{
     fetch("/publicComponents/notificationRow.html").then(componentResponse=>componentResponse.text().then(notificationHtml=>{
@@ -248,27 +267,31 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
             }
           });
 
+          conditionCreator();
+
           submitScenario.addEventListener("click",function(e){
             e.preventDefault();
 
             scenarioPayload.scenarioName = ""
 
             if(touchkeys.includes(selectedDestinationDeviceType)){
-                scenarioPayload.scenarioDestinationKey = destinationBridge.value;
+              scenarioPayload.scenarioDestinationKey = destinationBridge.value;
             }else{
                 scenarioPayload.scenarioDestinationKey = "command1"; 
             }
 
             if(!setPoint.value==''){
-                scenarioPayload.scenarioSetPoint = setPoint.value;
+              scenarioPayload.scenarioSetPoint = setPoint.value;
             }
 
             if(selectedSourceDeviceType=="THERMOSTAT"){
-                scenarioPayload.scenarioSourceKey = thermostatSelector.value;
+              scenarioPayload.scenarioSourceKey = thermostatSelector.value;
             }
 
             scenarioPayload.scenarioSourceDevice = sourceDeviceDiv.value;
             scenarioPayload.scenarioDestinationDevice = destinationDeviceDiv.value;
+
+            scenarioPayload.scenarioCondition = sensorCondition.value;
 
             scenarioPayload.scenarioCommand = destinationActionDiv.value;
 
