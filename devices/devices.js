@@ -21,6 +21,7 @@ var deviceIcon = {
     "WINDOW_DOORSENSOR": "/img/window.png",
     "CURTAIN": "/img/curtain.png",
     "DIMMER":"/img/dimmer.png",
+    "RFID":"/img/rfid.png"
 };
 
 var touchkeys = [
@@ -49,6 +50,7 @@ var actuators = [
     "LOCK",
     "VALVE",
     "CURTAIN",
+    "RFID"
 ];
 
 var uuid = sessionStorage.getItem("uuid");
@@ -78,6 +80,7 @@ getAllDevices(uuid,token).then(res=>{
             }
     
             else if(actuators.includes(res["data"][index]["type"])){
+                console.log(res["data"][index]);
                 actuatorsDeviceDiv.insertAdjacentHTML("beforeend",deviceHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"]).replace("#deviceId",res["data"][index]["id"]));
             }
     

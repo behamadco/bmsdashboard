@@ -1,17 +1,16 @@
 <div dir="ltr" class="col-sm-12 col-xl-12 section">
-    <div class="bg-secondary rounded d-flex align-items-center justify-content-evenly p-4">
-        <div id="cirRange"></div>
+    <div class="bg-secondary rounded d-flex align-items-center justify-content-around p-4">
+        <div dir="ltr" class="slidecontainer">
+            <input type="range" min="1" max="98" value="1" class="slider" id="dimmerRange">
+            <p class="curtain-value" id="dimmerValue"></p>
+        </div>
     </div>
     <div class="bg-secondary rounded d-flex align-items-center justify-content-evenly p-4">
         <p>خاموش</p>
-        <div class="onoffswitch">
-            <label for="valveOnOff" style="display:none;"></label>
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="valveOnOff" placeholder="l" tabindex="0" checked>
-            <label class="onoffswitch-label" for="myonoffswitch">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-            </label>
-        </div>
+        <label class="switch-wrap" for="dimmerSwitch">
+            <input type="checkbox" id="dimmerSwitch" name="dimmerSwitch" title="dimmerSwitch" placeholder="dimmerSwitch"/>
+            <div class="switch"></div>
+        </label>
         <p>روشن</p>
     </div>
 </div>

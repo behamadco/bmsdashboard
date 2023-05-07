@@ -1,4 +1,4 @@
-import { getAllDevices, getAllNotification, getAllScenarios, getBuildings, getLastLogin, getQuickAccessDevices } from "../js/Functions.js";
+import { getAllDevices, getAllNotification, getAllScenarios, getBuildings, getLastLogin, getQuickAccessDevices, getSchedules, getAllSecurityScenarios, getAllTravelScenario } from "../js/Functions.js";
 
 var deviceIcon = {
     "BUZZER":"/img/buzzer.png",
@@ -21,6 +21,7 @@ var deviceIcon = {
     "WINDOW_DOORSENSOR": "/img/window.png",
     "CURTAIN": "/img/curtain.png",
     "DIMMER":"/img/dimmer.png",
+    "RFID":"/img/rfid.png"
 };
 
 
@@ -44,28 +45,38 @@ getBuildings(uuid,token).then(res => buildingCount.innerHTML=res["data"].length)
 getLastLogin(uuid,token).then(res =>{
     lastIp.innerHTML = res["data"]["ipaddress"];
 });
-getAllNotification(uuid,token).then(res =>{
-    fetch("/publicComponents/notificationRow.html").then(componentResponse=>componentResponse.text().then(notificationHtml=>{
-        for(var index in res["data"]){
-            notificationDiv.innerHTML += notificationHtml.replace("#notificationText",res["data"][index]["subject"]);
-        }
-    })).finally(()=>{notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"});
-});
+
+if(sessionStorage.getItem("uuid")==null){
+    location.replace("/login");
+}else{
+    getAllNotification(uuid,token).then(res =>{
+        fetch("/publicComponents/notificationRow.html").then(componentResponse=>componentResponse.text().then(notificationHtml=>{
+            for(var index in res["data"]){
+                notificationDiv.innerHTML += notificationHtml.replace("#notificationText",res["data"][index]["subject"]);
+            }
+        })).finally(()=>{notificationDiv.innerHTML += "<a href='#' class='dropdown-item text-center'>دیدن همه اطلاعیه ها</a>"});
+    });
+    
 
 
-getAllScenarios(uuid,token).then(res => {
-    fetch("components/scenarioComponent.html").then(componentResponse=>componentResponse.text().then(scenarioHtml=>{
-        for(var index in res["data"]){
-            scenarioDiv.innerHTML += scenarioHtml.replace("#scenarioName",res["data"][index]["name"]);
-        }
-    }));
-});
-
-getQuickAccessDevices(uuid,token).then(res => {
-    fetch("components/quickAccessComponent.html").then(componentResponse=>componentResponse.text().then(quickAccessHtml=>{
-        for(var index in res["data"]){
-            quickAccessDiv.innerHTML += quickAccessHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"])
-        }
-    }));
-    spinner.classList.remove("show");
-});
+    getAllScenarios(uuid, token).then(getAllScenariosResponse=>{
+        var scenarioData = getAllScenariosResponse["data"];
+        fetch("components/scenariosComponent.html").then(componentResponse=>{componentResponse.text().then(scenarioHtml=>{
+            var lastIndex;
+            if(scenarioData.length < 3){lastIndex=scenarioData.length;}else{lastIndex=3;}
+            for(var index=0;index<lastIndex;index++){
+                var currentScenario = scenarioData[index];
+                scenarioDiv.insertAdjacentHTML("beforeend",scenarioHtml.replace("#scImg",deviceIcon[currentScenario["sourcedevice"]["type"]]).replace("#scenarioName",currentScenario["name"]));
+            }
+        })});
+    });
+    
+    getQuickAccessDevices(uuid,token).then(res => {
+        fetch("components/quickAccessComponent.html").then(componentResponse=>componentResponse.text().then(quickAccessHtml=>{
+            for(var index in res["data"]){
+                quickAccessDiv.innerHTML += quickAccessHtml.replace("#imageSrc",deviceIcon[res["data"][index]["type"]]).replace("#deviceName",res["data"][index]["name"])
+            }
+        }));
+        spinner.classList.remove("show");
+    });
+}

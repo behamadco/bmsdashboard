@@ -15,6 +15,25 @@ function subTopicGenerator(length) {
    return result;
 }
 
+export function sendMQTTMessage(mqtt,topic,did,key,command){
+    var deviceCommands = {
+        "command1":"x",
+        "command2":"x",
+        "command3":"x",
+        "command4":"x",
+        "device":"x",
+        "data":"x",
+        "did":did,
+        "min":0,
+        "max":0
+    };
+
+    deviceCommands[key] = command;
+    var message = new Paho.MQTT.Message(JSON.stringify(deviceCommands));
+    message.destinationName = topic;
+    mqtt.send(message);
+}
+
 export function getBuildings(uuid,token){
     var url = host + "/SmartHomeV3/getAllBuildings"
 
@@ -167,6 +186,56 @@ export function getDeviceByID(deviceId,uuid,token){
         }
     
         var body = {
+            "deviceid": deviceId,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function deleteDevice(deviceId,uuid,token){
+    var url = host + "/SmartHomeV3/deleteDevice"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "deviceid": deviceId,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+export function modifyDevice(deviceNewName,deviceId,uuid,token){
+    var url = host + "/SmartHomeV3/modifyDevice"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "devicenewname":deviceNewName,
             "deviceid": deviceId,
             "useruuid": uuid
         }

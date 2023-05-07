@@ -1,0 +1,117 @@
+.main__title {
+    font-size: 4rem
+}
+
+.main__paragraph {
+    font-size: 1.8rem
+}
+
+.modal__img {
+    max-width: 60%;
+    height: auto;
+    display: block;
+}
+
+.modal {
+    max-width: 700px;
+    width: 85%;
+    position: fixed;
+    top: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 5px;
+    background: #17191f;
+    display: none;
+    height: 45vh;
+}
+
+
+/****show modal class****/
+
+.modal.show {
+    display: block
+}
+
+.modal-close {
+    cursor: pointer;
+    color: white;
+    position: absolute;
+    top: 0;
+    font-size: 25px;
+    right: 0;
+    padding: 1rem;
+    margin-right: 10px;
+}
+
+.modal-close:hover{
+    color: red;
+    transition: 500ms;
+}
+
+.modal__title {
+    font-size: 2rem;
+    padding-top: 6%;
+    text-align: center;
+}
+
+.modal__title span {
+    display: block;
+    font-weight: 400;
+}
+
+.modal__paragraph {
+    font-size: 16px;
+    font-weight: 400;
+    text-align: center;
+}
+
+.modal__button {
+    background-color: #0a9396;
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
+    transition: 0.3s background-color ease-in-out;
+}
+
+.modal__button:hover {
+    background-color: #0a9372;
+}
+
+main {
+    text-align: center;
+}
+
+.modal__container {
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+
+/****styling modal on smaller screen******/
+
+@media only screen and (min-width: 768px) {
+    .modal__container {
+        flex-direction: row;
+        padding: 2rem;
+        text-align: left;
+    }
+    .modal__img {
+        max-width: 50%
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .modal__title {
+        font-size: 2rem;
+    }
+    .modal__img {
+        max-width: 80%
+    }
+}
