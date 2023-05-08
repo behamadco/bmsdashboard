@@ -56,29 +56,37 @@
             <div class="container pt-4 px-4">
                 <div class="row bg-dark rounded align-items-start justify-content-center" id="buildingList">
                     <div class="col-sm-6 col-xl-6 section">
-                            <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
-                                <h4>دستگاه سنسور</h4>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="sourceDeviceDiv">
-                                </select>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="thermostatSelector" style="display: none;">
-                                </select>
-                                <p style="color: white;" id="conditionText">شرط سناریو را انتخاب کنید</p>
-                                <select class="form-select form-select-lg mb-3" aria-label=".form-select-sm example" id="sensorCondition">
-                                </select>
-                                <p style="color: white;" id="setPointText">مقدار هدف سنسور را وارد نمایید</p>
-                                <input class="form-control" type="number" name="setPoint" id="setPoint">
-                            </div>
+                        <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
+                            <h4>دستگاه آژیر</h4>
+                            <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="alarmDevice">
+                            </select>
+                        </div>
                     </div>
                     <div class="col-sm-6 col-xl-6 section">
-                            <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
-                                <h4>دستگاه مقصد</h4>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationDeviceDiv">
-                                </select>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationBridge" style="display: none;">
-                                </select>
-                                <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="destinationActionDiv" >
-                                </select>
-                            </div>
+                        <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
+                            <h4>سنسور درب و پنجره</h4>
+                            <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="windowDevice">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row bg-dark rounded align-items-start justify-content-center" id="buildingList">
+                    <div class="col-sm-6 col-xl-6 section">
+                        <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
+                            <h4>سنسور تشخیص حرکت</h4>
+                            <select class="form-select form-select-lg mb-3 select-device-drop" aria-label=".form-select-sm example" id="pirDevice">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-6 section">
+                        <div class="bg-secondary rounded d-flex-column align-items-center justify-content-center p-4" style="text-align:center">
+                            <p style="text-align: center;color: white;">
+                                دقت داشته باشید اگر سناریو اجرا شود، کد زیر برای شما ارسال خواهد شد
+                            </p>
+                            <p id="securityCode" style="text-align: center;color: white;font-size: 2.7rem;font-family: 'Times New Roman', Times, serif;">
+                                12345
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div class="row bg-dark rounded align-items-start justify-content-center">
@@ -87,7 +95,6 @@
                             <button class="btn btn-info btn-block" id="submitScenario">
                                 ثبت سناریو
                             </button>
-                            <p style="color: white;" id="messageText"></p>
                         </div>
                     </div>
                 </div>
@@ -117,6 +124,6 @@
     <script src="/js/circle-progress.min.js"></script>
     <script src="/js/circle-range.js"></script>
     <script src="/js/main.js"></script>
-    <script src="sensorscenario.js" type="module"></script>
+    <script src="securityscenario.js" type="module"></script>
 </body>
 </html>

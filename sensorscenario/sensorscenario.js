@@ -1,4 +1,4 @@
-import { getAllDevices, getAllNotification } from "../js/Functions.js";
+import { createScenario, getAllDevices, getAllNotification } from "../js/Functions.js";
 
 var uuid = sessionStorage.getItem("uuid");
 var token = sessionStorage.getItem("token");
@@ -20,6 +20,9 @@ var submitScenario = document.getElementById("submitScenario");
 
 var setPoint = document.getElementById("setPoint");
 
+var conditionText = document.getElementById("conditionText");
+var setPointText = document.getElementById("setPointText");
+
 
 var destinationDeviceName = "";
 
@@ -31,7 +34,7 @@ var sourceDeviceName = "";
 var sensorDevicesList = [];
 var commandDevicesList = [];
 
-var sensorDevices = ["THERMOSTAT", "MOTIONDETECTOR"];
+var sensorDevices = ["THERMOSTAT", "MOTIONDETECTOR","FLOWERPOT","HEIGHTDETECTOR"];
 var commandDevices = ["BUZZER","COOLER_KEY","LOCK","SOCKET","TOUCHKEY","TOUCHKEY_2B","TOUCHKEY_3B","TOUCHKEY_4B","TOUCHKEY_16B","VALVE","CURTAIN","DIMMER"]
 
 
@@ -49,7 +52,7 @@ var scenarioPayload = {
     "scenarioDestinationTopic":"",
     "scenarioSourceKey":"",
     "scenarioDestinationKey":"",
-    "scenarioSourceValue":"",
+    "scenarioSourceValue":"NOTSET",
     "scenarioSetPoint":"NOTSET",
     "scenarioSms":0,
     "scenarioNotification":0,
@@ -107,7 +110,9 @@ var commandDefinition = {
 
 var sensorStatusKey = {
     "MOTIONDETECTOR":"status1",
-    "THERMOSTAT":["temperature", "humidity"]
+    "THERMOSTAT":["temperature", "humidity"],
+    "FLOWERPOT":"pot",
+    "HEIGHTDETECTOR":"height"
 }
 
 var deviceCommandDef = {
@@ -173,7 +178,7 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
 
         var srcselectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
         var srcselectedDeviceType = srcselectedOption.getAttribute("device-type");
-        sourceDeviceName = sourceDeviceDiv.text;
+        sourceDeviceName = srcselectedOption.innerHTML;
         selectedSourceDeviceType = srcselectedDeviceType;
         if(selectedSourceDeviceType=="THERMOSTAT"){
             thermostatSelector.style.display="block";
@@ -187,13 +192,25 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
           }else{
             thermostatSelector.style.display="none";
           }
+          if(selectedSourceDeviceType=="MOTIONDETECTOR"){
+              
+            setPointText.style.display = 'none';
+            conditionText.style.display = 'none';
+            setPoint.style.display = 'none';
+            sensorCondition.style.display = 'none';
+          }else{
+            setPointText.style.display = 'inline-block';
+            conditionText.style.display = 'inline-block';
+            setPoint.style.display = 'inline-block-block';
+            sensorCondition.style.display = 'inline-block-block';
+          }
 
         sourceDeviceDiv.addEventListener("change",function(e) {
             e.preventDefault();
             var selectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
             var selectedDeviceType = selectedOption.getAttribute("device-type");
-            selectedDestinationDeviceType = selectedDeviceType;
-            sourceDeviceName = sourceDeviceDiv.text;
+            selectedSourceDeviceType = selectedDeviceType;
+            sourceDeviceName = selectedOption.innerHTML;
             if(selectedDeviceType=="THERMOSTAT"){
               thermostatSelector.style.display="block";
               thermostatSelector.innerHTML = "";
@@ -206,6 +223,19 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
             }else{
               thermostatSelector.style.display="none";
             }
+
+            if(selectedDeviceType=="MOTIONDETECTOR"){
+              
+              setPointText.style.display = 'none';
+              conditionText.style.display = 'none';
+              setPoint.style.display = 'none';
+              sensorCondition.style.display = 'none';
+            }else{
+              setPointText.style.display = 'inline';
+              conditionText.style.display = 'inline';
+              setPoint.style.display = 'inline-block';
+              sensorCondition.style.display = 'inline-block';
+            }
             for(var index in scenarioActionChoices[selectedDeviceType]){
               var option = document.createElement("option");
               option.setAttribute("value",commandDefinition[scenarioActionChoices[selectedDeviceType][index]]);
@@ -217,7 +247,7 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
         var desselectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
         var desselectedDeviceType = desselectedOption.getAttribute("device-type");
         selectedDestinationDeviceType = desselectedDeviceType;
-        destinationDeviceName = destinationDeviceDiv.text;
+        destinationDeviceName = desselectedOption.innerHTML;
         destinationActionDiv.innerHTML="";
         for(var index in scenarioActionChoices[desselectedDeviceType]){
           var option = document.createElement("option");
@@ -245,7 +275,7 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
             var selectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
             var selectedDeviceType = selectedOption.getAttribute("device-type");
             selectedDestinationDeviceType = selectedDeviceType;
-            destinationDeviceName = destinationDeviceDiv.text;
+            destinationDeviceName = selectedOption.innerHTML;
             destinationActionDiv.innerHTML="";
             if(touchkeys.includes(selectedDeviceType)){
               destinationBridge.style.display="block";
@@ -272,7 +302,9 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
           submitScenario.addEventListener("click",function(e){
             e.preventDefault();
 
-            scenarioPayload.scenarioName = ""
+            submitScenario.innerHTML = "در حال ثبت...";
+
+            scenarioPayload.scenarioName = "سناریو سنسور " + sourceDeviceName + " " + "و دستگاه " + destinationDeviceName;
 
             if(touchkeys.includes(selectedDestinationDeviceType)){
               scenarioPayload.scenarioDestinationKey = destinationBridge.value;
@@ -294,6 +326,56 @@ getAllDevices(uuid, token).then(getAllDevicesResponse=>{
             scenarioPayload.scenarioCondition = sensorCondition.value;
 
             scenarioPayload.scenarioCommand = destinationActionDiv.value;
+
+            if(selectedSourceDeviceType!="THERMOSTAT"){
+              scenarioPayload.scenarioSourceKey = sensorStatusKey[selectedSourceDeviceType];
+            }
+
+            if(selectedSourceDeviceType=="MOTIONDETECTOR"){
+              scenarioPayload.scenarioSourceValue = true
+              scenarioPayload.scenarioCondition = "NOTSET";
+            }
+
+            if(selectedDestinationDeviceType=="TOUCHKEY_16B"){
+              var defCommand = "xxxxxxxxxxxxxxxx";
+              var index = scenarioBridgeChoices.TOUCHKEY_16B.indexOf(destinationBridge.value);
+              var finalCommand = defCommand.substring(0,index) + destinationActionDiv.value + defCommand.substring(index,defCommand.length);
+              scenarioPayload.scenarioDestinationKey = "data";
+              scenarioPayload.scenarioCommand = finalCommand;
+            }
+
+            if(selectedDestinationDeviceType=="DIMMER"){
+              scenarioPayload.scenarioDestinationKey = "command2";
+            }
+
+            if(setPoint.text!=""){
+              createScenario(
+                scenarioPayload.scenarioName,
+                scenarioPayload.scenarioCommand,
+                scenarioPayload.scenarioCondition,
+                scenarioPayload.scenarioSourceKey,
+                scenarioPayload.scenarioSourceValue,
+                scenarioPayload.scenarioDestinationKey,
+                scenarioPayload.scenarioSourceDevice,
+                scenarioPayload.scenarioSourceDevice,
+                scenarioPayload.scenarioDestinationDevice,
+                scenarioPayload.scenarioSetPoint,
+                scenarioPayload.scenarioNotification,
+                scenarioPayload.scenarioStatus,
+                scenarioPayload.scenarioSms,
+                uuid,
+                token
+                ).then(createScenarioResponse=>{
+                  if(createScenarioResponse.status){
+                    window.location.replace("/scenario");
+                  }else{
+                    submitScenario.innerHTML = "ثبت سناریو";
+                    console.log("SensorScenarioMessage",createScenarioResponse.message);
+                    var messageText = document.getElementById("messageText");
+                    messageText.innerHTML = "در ثبت سناریو خطا رخ داده است";
+                  }
+                });
+            }
 
             console.log(scenarioPayload);
           });

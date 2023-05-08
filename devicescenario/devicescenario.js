@@ -1,4 +1,4 @@
-import { getAllDevices, getAllNotification } from "../js/Functions.js";
+import { getAllDevices, getAllNotification, createScenario } from "../js/Functions.js";
 
 var uuid = sessionStorage.getItem("uuid");
 var token = sessionStorage.getItem("token");
@@ -65,8 +65,8 @@ var touchkeys = [
 var scenarioActionChoices = {
     "BUZZER":['روشن شود','خاموش شود'],
     "COOLER_KEY":["روشن شود","خاموش شود"],
-    "LOCK":['باز شود',"بسته شود"],
-    "RFID":['باز شود','بسته شود'],
+    "LOCK":['باز شود'],
+    "RFID":['باز شود'],
     "SOCKET":["خاموش شود","روشن شود"],
     "TOUCHKEY":["خاموش شود","روشن شود"],
     "TOUCHKEY_2B":["خاموش شود","روشن شود"],
@@ -185,7 +185,7 @@ getAllDevices(uuid,token).then(getAllDevicesResponse=>{
         var desselectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
         var desselectedDeviceType = desselectedOption.getAttribute("device-type");
         selectedDestinationDeviceType = desselectedDeviceType;
-        destinationDeviceName = destinationDeviceDiv.text;
+        destinationDeviceName = desselectedOption.innerHTML;
         destinationActionDiv.innerHTML="";
         for(var index in scenarioActionChoices[desselectedDeviceType]){
           var option = document.createElement("option");
@@ -193,14 +193,23 @@ getAllDevices(uuid,token).then(getAllDevicesResponse=>{
           option.text = scenarioActionChoices[desselectedDeviceType][index];
           destinationActionDiv.add(option);
         }
+        if(touchkeys.includes(selectedDestinationDeviceType)){
+          destinationBridge.style.display="block";
+          destinationBridge.innerHTML = "";
+          for(var index in scenarioBridgeChoices[selectedDestinationDeviceType]){
+            var option = document.createElement("option");
+            option.setAttribute("value",bridgeCommandsDef[scenarioBridgeChoices[selectedDestinationDeviceType][index]]);
+            option.text = scenarioBridgeChoices[selectedDestinationDeviceType][index];
+            destinationBridge.add(option);
+          }
+        }else{
+          destinationBridge.style.display="none";
+        }
 
-        
-
-
-
+      
         var srcselectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
         var srcselectedDeviceType = srcselectedOption.getAttribute("device-type");
-        sourceDeviceName = sourceDeviceDiv.text;
+        sourceDeviceName = srcselectedOption.innerHTML;
         selectedSourceDeviceType = srcselectedDeviceType;
         sourceActionDiv.innerHTML="";
         for(var index in scenarioStatusChoices[srcselectedDeviceType]){
@@ -209,13 +218,25 @@ getAllDevices(uuid,token).then(getAllDevicesResponse=>{
           option.text = scenarioStatusChoices[srcselectedDeviceType][index];
           sourceActionDiv.add(option);
         }
+        if(touchkeys.includes(selectedSourceDeviceType)){
+          sourceBridge.style.display="block";
+          sourceBridge.innerHTML = "";
+          for(var index in scenarioBridgeChoices[selectedSourceDeviceType]){
+            var option = document.createElement("option");
+            option.setAttribute("value",bridgeDefinition[scenarioBridgeChoices[selectedSourceDeviceType][index]]);
+            option.text = scenarioBridgeChoices[selectedSourceDeviceType][index];
+            sourceBridge.add(option);
+          }
+        }else{
+          sourceBridge.style.display="none";
+        }
 
         destinationDeviceDiv.addEventListener("change",function(e) {
           e.preventDefault();
           var selectedOption = destinationDeviceDiv.options[destinationDeviceDiv.selectedIndex];
           var selectedDeviceType = selectedOption.getAttribute("device-type");
           selectedDestinationDeviceType = selectedDeviceType;
-          destinationDeviceName = destinationDeviceDiv.text;
+          destinationDeviceName = selectedOption.innerHTML;
           destinationActionDiv.innerHTML="";
           if(touchkeys.includes(selectedDeviceType)){
             destinationBridge.style.display="block";
@@ -253,7 +274,7 @@ getAllDevices(uuid,token).then(getAllDevicesResponse=>{
           var selectedOption = sourceDeviceDiv.options[sourceDeviceDiv.selectedIndex];
           var selectedDeviceType = selectedOption.getAttribute("device-type");
           selectedSourceDeviceType = selectedDeviceType;
-          sourceDeviceName = sourceDeviceDiv.text;
+          sourceDeviceName = selectedOption.innerHTML;
           sourceActionDiv.innerHTML="";
 
           if(touchkeys.includes(selectedDeviceType)){
@@ -276,35 +297,86 @@ getAllDevices(uuid,token).then(getAllDevicesResponse=>{
             sourceActionDiv.add(option);
           }
         });
-
-        sourceActionDiv.addEventListener("change",function(e){
-          e.preventDefault();
-          scenarioPayload.scenarioSourceValue = sourceActionDiv.value;
-        });
-
-        sourceBridge.addEventListener("change", function(e){
-          e.preventDefault();
-          scenarioPayload.scenarioSourceKey = sourceBridge.value;
-        });
-
         
         submitScenario.addEventListener("click", function(e){
           e.preventDefault();
-          if(!touchkeys.includes(selectedSourceDeviceType)){
-            scenarioPayload.scenarioSourceKey = "status1";
+          
+          submitScenario.innerHTML = "در حال ثبت...";
+
+          scenarioPayload.scenarioName = "سناریو دسنگاه " + sourceDeviceName + " و " + destinationDeviceName;
+
+          if(touchkeys.includes(selectedDestinationDeviceType)){
+            scenarioPayload.scenarioDestinationKey = destinationBridge.value;
+          }else{
+            console.log("Not Touchkey (DES)");
+            scenarioPayload.scenarioDestinationKey = "command1"; 
           }
 
-          if(!touchkeys.includes(selectedDestinationDeviceType)){
-            scenarioPayload.scenarioDestinationKey = "command1";
+          if(touchkeys.includes(selectedSourceDeviceType)){
+            scenarioPayload.scenarioSourceKey = sourceBridge.value;
+          }else{
+              console.log("Not Touchkey (SRC)");
+              scenarioPayload.scenarioSourceKey = "status1"; 
           }
+
+          scenarioPayload.scenarioSourceDevice = sourceDeviceDiv.value;
+          scenarioPayload.scenarioDestinationDevice = destinationDeviceDiv.value;
 
           scenarioPayload.scenarioCommand = destinationActionDiv.value;
-          scenarioPayload.scenarioDestinationKey = destinationBridge.value;
-
+          
           scenarioPayload.scenarioSourceValue = sourceActionDiv.value;
-          scenarioPayload.scenarioSourceKey = sourceBridge.value;
 
-          console.log(scenarioPayload);
+          if(selectedDestinationDeviceType=="TOUCHKEY_16B"){
+            var defCommand = "xxxxxxxxxxxxxxxx";
+            var index = scenarioBridgeChoices.TOUCHKEY_16B.indexOf(destinationBridge.value);
+            var finalCommand = defCommand.substring(0,index) + destinationActionDiv.value + defCommand.substring(index,defCommand.length);
+            scenarioPayload.scenarioDestinationKey = "data";
+            scenarioPayload.scenarioCommand = finalCommand;
+          }
+
+          if(selectedSourceDeviceType=="TOUCHKEY_16B"){
+            var defCommand = "xxxxxxxxxxxxxxxx";
+            var index = scenarioBridgeChoices.TOUCHKEY_16B.indexOf(destinationBridge.value);
+            var status = sourceActionDiv.value ? 1 : 0;
+            var finalCommand = defCommand.substring(0,index) + status + defCommand.substring(index,defCommand.length);
+            scenarioPayload.scenarioSourceKey = "data";
+            scenarioPayload.scenarioSourceValue = finalCommand;
+          }
+
+            if(selectedDestinationDeviceType=="DIMMER"){
+              scenarioPayload.scenarioDestinationKey = "command2";
+            }
+
+            if(selectedSourceDeviceType=="DIMMER"){
+              scenarioPayload.scenarioSourceKey = "status1";
+            }
+
+            createScenario(
+              scenarioPayload.scenarioName,
+              scenarioPayload.scenarioCommand,
+              scenarioPayload.scenarioCondition,
+              scenarioPayload.scenarioSourceKey,
+              scenarioPayload.scenarioSourceValue,
+              scenarioPayload.scenarioDestinationKey,
+              scenarioPayload.scenarioSourceDevice,
+              scenarioPayload.scenarioSourceDevice,
+              scenarioPayload.scenarioDestinationDevice,
+              scenarioPayload.scenarioSetPoint,
+              scenarioPayload.scenarioNotification,
+              scenarioPayload.scenarioStatus,
+              scenarioPayload.scenarioSms,
+              uuid,
+              token
+              ).then(createScenarioResponse=>{
+                if(createScenarioResponse.status){
+                  window.location.replace("/scenario");
+                }else{
+                  submitScenario.innerHTML = "ثبت سناریو";
+                  console.log("SensorScenarioMessage",createScenarioResponse.message);
+                  var messageText = document.getElementById("messageText");
+                  messageText.innerHTML = "در ثبت سناریو خطا رخ داده است";
+                }
+              });
         });
     }));
 }).finally(()=>{

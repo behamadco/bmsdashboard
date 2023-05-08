@@ -15,6 +15,17 @@ function subTopicGenerator(length) {
    return result;
 }
 
+export function codeGenerator(length) {
+    var result           = '';
+    var characters       = '0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+}
+
 export function sendMQTTMessage(mqtt,topic,did,key,command){
     var deviceCommands = {
         "command1":"x",
@@ -286,6 +297,73 @@ export function getPlace(placeId,uuid,token){
     
         var body = {
             "placeid": placeId,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function createScenario(name,action,condition,sourceKey,sourceValue,destinationKey,deviceId,sourceDeviceId,destinationDeviceId,setPoint,notify,status,sms,uuid,token){
+    var url = host + "/SmartHomeV3/createScenario"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "name":name,
+            "action":action,
+            "condition":condition,
+            "sourcekey":sourceKey,
+            "sourcevalue":sourceValue,
+            "destinationkey":destinationKey,
+            "deviceid":deviceId,
+            "sourcedeviceid":sourceDeviceId,
+            "destinationdeviceid":destinationDeviceId,
+            "setpoint":setPoint,
+            "notify":notify,
+            "status":status,
+            "sms":sms,
+            "useruuid": uuid
+        }
+    
+        http.open("POST",url,true);
+        http.setRequestHeader("Content-Type","application/json");
+        http.setRequestHeader("Authorization","Token "+token)
+        http.send(JSON.stringify(body));
+    });
+}
+
+
+export function createSecurityScenario(name,alarmDeviceId,windowDeviceId,pirDeviceId,securityCode,uuid,token){
+    var url = host + "/SmartHomeV3/createSecurityDefaultScenario"
+
+    var http = new XMLHttpRequest();
+
+    return new Promise((resolve,reject)=>{
+        http.onreadystatechange = function(){
+            if(this.readyState==4 & this.status==200){
+                resolve(JSON.parse(this.response));
+            }
+        }
+    
+        var body = {
+            "scenarioname":name,
+            "alarmdeviceid":alarmDeviceId,
+            "doorsensordeviceid":windowDeviceId,
+            "pirsensordeviceid":pirDeviceId,
+            "securitycode": securityCode,
+            "notifymode":"both",
             "useruuid": uuid
         }
     
