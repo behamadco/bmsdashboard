@@ -1,4 +1,4 @@
-import { getAllNotification, getBmsDevice, getBmsSubDevices } from "../js/Functions.js";
+import { getAllNotification, getBmsDevice, getBmsSubDevices, sendBMSMQTTRelayMessage, sendDHTMQTTReadCommand, sendServoMQTTCloseCommand, sendServoMQTTOpenCommand } from "../js/Functions.js";
 
 var relay1Ok = false;
 var relay2Ok = false;
@@ -82,8 +82,8 @@ function relay1Action() {
     var relay1Switch = document.getElementById("relay1Switch");
     relay1Switch.addEventListener("change",function(e){
         e.preventDefault();
-        if(relay1Switch.checked){sendCommand("01",relay1Fport,relay1Channel)}
-        else{sendCommand("00",relay1Fport,relay1Channel)}
+        if(relay1Switch.checked){sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY1", "OPEN")}
+        else{sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY1", "CLOSE")}
     });
 }
 
@@ -91,8 +91,8 @@ function relay2Action() {
     var relay2Switch = document.getElementById("relay2Switch");
     relay2Switch.addEventListener("change",function(e){
         e.preventDefault();
-        if(relay2Switch.checked){sendCommand("01",relay2Fport,relay2Channel)}
-        else{sendCommand("00",relay2Fport,relay2Channel)}
+        if(relay2Switch.checked){sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY2", "OPEN")}
+        else{sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY2", "CLOSE")}
     });
 }
 
@@ -100,8 +100,8 @@ function relay3Action() {
     var relay3Switch = document.getElementById("relay3Switch");
     relay3Switch.addEventListener("change",function(e){
         e.preventDefault();
-        if(relay3Switch.checked){sendCommand("01",relay3Fport,relay3Channel)}
-        else{sendCommand("00",relay3Fport,relay3Channel)}
+        if(relay3Switch.checked){sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY3", "OPEN")}
+        else{sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY3", "CLOSE")}
     });
 }
 
@@ -109,8 +109,8 @@ function relay4Action() {
     var relay4Switch = document.getElementById("relay4Switch");
     relay4Switch.addEventListener("change",function(e){
         e.preventDefault();
-        if(relay4Switch.checked){sendCommand("01",relay4Fport,relay4Channel)}
-        else{sendCommand("00",relay4Fport,relay4Channel)}
+        if(relay4Switch.checked){sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY4", "OPEN")}
+        else{sendBMSMQTTRelayMessage(mqtt, devEui, topic, "RELAY4", "CLOSE")}
     });
 }
 
@@ -118,8 +118,8 @@ function servoAction() {
     var servoSwitch = document.getElementById("servoSwitch");
     servoSwitch.addEventListener("change",function name(e) {
         e.preventDefault();
-        if(servoSwitch.checked){sendCommand("01",servoFport,servoChannel)}
-        else{sendCommand("01",servoFport,servoChannel)}
+        if(servoSwitch.checked){sendServoMQTTOpenCommand(mqtt,devEui,topic)}
+        else{sendServoMQTTCloseCommand(mqtt, devEui, topic)}
     });
 }
 
@@ -137,9 +137,9 @@ function onConnect(){
     console.log('CONNECTED');
     console.log(topic);
     console.log(statusTopic);
-    console.log(relay1Channel,relay2Channel,relay3Channel,relay4Channel);
     mqtt.subscribe(statusTopic);
     console.log("Subscribed");
+    sendDHTMQTTReadCommand(mqtt, devEui, topic);
 }
 
 

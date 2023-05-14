@@ -45,6 +45,76 @@ export function sendMQTTMessage(mqtt,topic,did,key,command){
     mqtt.send(message);
 }
 
+function sendBmsMQTTMessage(mqtt, devEUI, topic, channel, command, systemParamType, SerialNumber, obisParamType, interval, angle){
+    var bmsCommand = {
+        "confirmed": true,
+        "fPort": 1,
+        "devEui": devEUI,
+        "object": {
+          "Channel": channel,
+          "Command": command,
+          "SystemParamType": systemParamType,
+          "SerialNumber": SerialNumber,
+          "OBISParamType": obisParamType,
+          "Interval": interval,
+          "Angle": angle
+        }
+    }
+
+    var message = new Paho.MQTT.Message(JSON.stringify(bmsCommand));
+    message.destinationName = topic;
+    mqtt.send(message);
+}
+
+
+export function sendBMSMQTTRelayMessage(mqtt, devEUI, topic, channel, command){
+    sendBmsMQTTMessage(mqtt,devEUI,topic,channel,command, "", "", "", 0, 0)
+}
+
+export function sendDHTMQTTReadCommand(mqtt, devEUI, topic){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "DHT22", "READ", "", "", "", 0, 0)
+}
+
+export function sendDHTMQTTPeriodicStart(mqtt, devEUI, topic){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "DHT22", "START_PERIODIC_READ", "", "", "", 0, 0)
+}
+
+export function sendDHTMQTTPeriodicInterval(mqtt, devEUI, topic, interval){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "DHT22", "CHANGE_READ_INTERVAL", "", "", "", interval, 0)
+}
+
+export function sendServoMQTTOpenCommand(mqtt, devEUI, topic){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "SERVO", "OPEN", "", "", "", 0, 0)
+}
+
+export function sendServoMQTTCloseCommand(mqtt, devEUI, topic){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "SERVO", "CLOSE", "", "", "", 0, 0)
+}
+
+export function sendServoMQTTChangeAngleCommand(mqtt, devEUI, topic, angle){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "SERVO", "CHANGE_SERVO_ANGLE", "", "", "", 0, angle)
+}
+
+export function sendRS485MQTTStartPeriodic(mqtt, devEUI, topic, serialNumber){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "RS485", "START_PERIODIC_READ", "", serialNumber, "", 0, 0)
+}
+
+export function sendRS485MQTTStopPeriodic(mqtt, devEUI, topic, serialNumber){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "RS485", "STOP_PERIODIC_READ", "", serialNumber, "", 0, 0)
+}
+
+export function sendRS485MQTTChangePeriodicInterval(mqtt, devEUI, topic, serialNumber, interval){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "RS485", "CHANGE_READ_INTERVAL", "", serialNumber, "", interval, 0)
+}
+
+export function sendRS485MQTTAddParameter(mqtt, devEUI, topic, serialNumber, obisParamType){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "RS485", "ADD_OBIS_PARAM_TO_READ", "", serialNumber, obisParamType, 0, 0)
+}
+
+export function sendRS485MQTTRemoveParameter(mqtt, devEUI, topic, serialNumber, obisParamType){
+    sendBmsMQTTMessage(mqtt, devEUI, topic, "RS485", "REMOVE_OBIS_PARAM_FROM_READ", "", serialNumber, obisParamType, 0, 0)
+}
+
 export function getBuildings(uuid,token){
     var url = host + "/SmartHomeV3/getAllBuildings"
 
